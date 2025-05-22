@@ -24,8 +24,8 @@ const ConversationItem = ({ conversation }: ConversationItemProps) => {
     : otherParticipant?.name || 'Unknown User';
   
   const avatarUrl = isGroup 
-    ? `https://ui-avatars.com/api/?name=${encodeURIComponent(conversation.name)}&background=8B5CF6&color=fff` 
-    : otherParticipant?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(otherParticipant?.name || 'U')}&background=3B82F6&color=fff`;
+    ? `https://ui-avatars.com/api/?name=${encodeURIComponent(conversation.name)}&background=6366f1&color=fff` 
+    : otherParticipant?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(otherParticipant?.name || 'U')}&background=6366f1&color=fff`;
   
   const lastMessage = conversation.lastMessage;
   const unreadCount = conversation.unreadCount || 0;
@@ -46,41 +46,56 @@ const ConversationItem = ({ conversation }: ConversationItemProps) => {
   const messageStatusIcon = () => {
     if (!lastMessage || lastMessage.sender._id === user?._id) return null;
     if (lastMessage.read) {
-      return <CheckCheck className="h-4 w-4 text-primary-500 flex-shrink-0" />;
+      return <CheckCheck className="h-4 w-4 text-indigo-500 dark:text-indigo-400 flex-shrink-0" />;
     } else if (lastMessage.delivered) {
-      return <Check className="h-4 w-4 text-gray-500 flex-shrink-0" />;
+      return <Check className="h-4 w-4 text-gray-500 dark:text-gray-400 flex-shrink-0" />;
     }
     return null;
   };
 
   return (
-    <li onClick={handleClick} className="cursor-pointer">
-      <div className={`flex items-center px-2 py-2 rounded-md hover:bg-gray-100 ${unreadCount > 0 ? 'bg-gray-50' : ''}`}>
+    <div 
+      onClick={handleClick} 
+      className={`
+        p-2 rounded-lg cursor-pointer transition-all duration-200
+        hover:bg-gray-100 dark:hover:bg-white/5
+        ${unreadCount > 0 ? 'bg-indigo-50 dark:bg-indigo-500/10' : ''}
+      `}
+    >
+      <div className="flex items-center gap-3">
         <div className="relative flex-shrink-0">
           <img 
             src={avatarUrl} 
             alt={displayName} 
-            className="h-10 w-10 rounded-full" 
+            className="h-10 w-10 rounded-full ring-2 ring-white dark:ring-gray-800" 
           />
           {conversation.online && !isGroup && (
-            <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-success-500 ring-2 ring-white"></span>
+            <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-teal-500 ring-2 ring-white dark:ring-gray-800"></span>
           )}
         </div>
         
-        <div className="ml-3 flex-1 min-w-0">
+        <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
-            <p className={`text-sm font-medium truncate ${unreadCount > 0 ? 'text-gray-900 font-semibold' : 'text-gray-700'}`}>
+            <p className={`font-medium truncate ${
+              unreadCount > 0 
+                ? 'text-gray-900 dark:text-white font-semibold' 
+                : 'text-gray-700 dark:text-gray-200'
+            }`}>
               {displayName}
             </p>
             {lastMessage && (
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 {formatDistanceToNow(new Date(lastMessage.createdAt), { addSuffix: true })}
               </p>
             )}
           </div>
           
-          <div className="flex items-center justify-between">
-            <p className={`text-xs truncate ${unreadCount > 0 ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>
+          <div className="flex items-center justify-between mt-0.5">
+            <p className={`text-sm truncate ${
+              unreadCount > 0 
+                ? 'text-gray-900 dark:text-white font-medium' 
+                : 'text-gray-500 dark:text-gray-400'
+            }`}>
               {lastMessage ? (
                 lastMessage.type === 'text' 
                   ? lastMessage.content 
@@ -88,11 +103,11 @@ const ConversationItem = ({ conversation }: ConversationItemProps) => {
               ) : 'No messages yet'}
             </p>
             
-            <div className="flex items-center space-x-1">
+            <div className="flex items-center gap-2 flex-shrink-0">
               {messageStatusIcon()}
               
               {unreadCount > 0 && (
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary-500 text-xs text-white">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 dark:bg-indigo-500 text-xs text-white font-medium">
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
@@ -100,7 +115,7 @@ const ConversationItem = ({ conversation }: ConversationItemProps) => {
           </div>
         </div>
       </div>
-    </li>
+    </div>
   );
 };
 

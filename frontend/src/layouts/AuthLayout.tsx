@@ -1,30 +1,32 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
-import { MessageCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const AuthLayout = () => {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, loading } = useAuthStore();
+
+  if (loading) {
+    return (
+      <div className="h-full flex items-center justify-center bg-gray-50 dark:bg-[#0f172a]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600 dark:border-indigo-400"></div>
+      </div>
+    );
+  }
 
   if (isAuthenticated) {
     return <Navigate to="/" replace />;
   }
 
   return (
-    <div className="flex min-h-full flex-1 flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="flex justify-center">
-          <MessageCircle className="h-12 w-12 text-primary-600" />
-        </div>
-        <h2 className="mt-6 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
-          ChatApp
-        </h2>
-      </div>
-
-      <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-[480px]">
-        <div className="bg-white px-6 py-12 shadow sm:rounded-lg sm:px-12">
-          <Outlet />
-        </div>
-      </div>
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50 dark:bg-[#0f172a] transition-colors duration-200">
+      <motion.div
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.3 }}
+        className="w-full max-w-md glass-panel p-8"
+      >
+        <Outlet />
+      </motion.div>
     </div>
   );
 };

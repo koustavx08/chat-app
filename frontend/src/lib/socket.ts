@@ -1,5 +1,4 @@
 import { io, Socket } from 'socket.io-client';
-import { useAuthStore } from '../stores/authStore';
 
 export let socket: Socket | null = null;
 

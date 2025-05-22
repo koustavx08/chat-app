@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { Check, CheckCheck, Download, Image, FileText, Film, MoreVertical, Trash2, Reply } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Message as MessageType } from '../types';
 import { useAuthStore } from '../stores/authStore';
 import { decryptMessage } from '../lib/encryption';
@@ -60,15 +61,14 @@ const MessageBubble = ({
             <img 
               src={message.file} 
               alt="Image" 
-              className="rounded-md max-w-full max-h-60 object-contain" 
+              className="rounded-lg max-w-full max-h-60 object-contain" 
             />
-            <a 
-              href={message.file} 
-              download={message.content} 
-              className="absolute bottom-2 right-2 p-2 rounded-full bg-gray-800 bg-opacity-70 text-white hover:bg-opacity-90"
+            <button 
+              onClick={() => window.open(message.file, '_blank')}
+              className="absolute bottom-2 right-2 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white backdrop-blur-sm transition-colors duration-200"
             >
               <Download className="h-4 w-4" />
-            </a>
+            </button>
           </div>
         );
         
@@ -78,40 +78,38 @@ const MessageBubble = ({
             <video 
               src={message.file} 
               controls 
-              className="rounded-md max-w-full max-h-60"
+              className="rounded-lg max-w-full max-h-60"
             />
-            <a 
-              href={message.file} 
-              download={message.content} 
-              className="absolute bottom-2 right-2 p-2 rounded-full bg-gray-800 bg-opacity-70 text-white hover:bg-opacity-90"
+            <button 
+              onClick={() => window.open(message.file, '_blank')}
+              className="absolute bottom-2 right-2 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white backdrop-blur-sm transition-colors duration-200"
             >
               <Download className="h-4 w-4" />
-            </a>
+            </button>
           </div>
         );
         
       case 'document':
         return (
-          <div className="flex items-center space-x-2 p-1">
-            <FileText className={`h-6 w-6 ${isSender ? 'text-white' : 'text-gray-700'}`} />
+          <div className="flex items-center gap-2 p-1">
+            <FileText className="h-6 w-6" />
             <div className="flex-1 truncate">
-              <p className={`text-sm ${isSender ? 'text-white' : 'text-gray-900'}`}>
+              <p className="text-sm">
                 {message.content}
               </p>
             </div>
-            <a 
-              href={message.file} 
-              download={message.content} 
-              className={`p-1.5 rounded-full ${isSender ? 'text-white hover:bg-primary-700' : 'text-gray-700 hover:bg-gray-300'}`}
+            <button 
+              onClick={() => window.open(message.file, '_blank')}
+              className="p-1.5 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 transition-colors duration-200"
             >
               <Download className="h-4 w-4" />
-            </a>
+            </button>
           </div>
         );
         
       default:
         return (
-          <p className={`text-sm ${isSender ? 'text-white' : 'text-gray-900'}`}>
+          <p className="text-sm whitespace-pre-wrap">
             {decryptedContent}
           </p>
         );
@@ -121,11 +119,11 @@ const MessageBubble = ({
   const renderFileIcon = () => {
     switch (message.type) {
       case 'image':
-        return <Image className="h-4 w-4 mr-1" />;
+        return <Image className="h-4 w-4" />;
       case 'video':
-        return <Film className="h-4 w-4 mr-1" />;
+        return <Film className="h-4 w-4" />;
       case 'document':
-        return <FileText className="h-4 w-4 mr-1" />;
+        return <FileText className="h-4 w-4" />;
       default:
         return null;
     }
@@ -135,33 +133,33 @@ const MessageBubble = ({
     if (!isSender) return null;
     
     if (message.read) {
-      return <CheckCheck className="h-3.5 w-3.5 text-white ml-1" />;
+      return <CheckCheck className="h-3.5 w-3.5 text-indigo-400 dark:text-indigo-300 ml-1" />;
     } else if (message.delivered) {
-      return <Check className="h-3.5 w-3.5 text-white/80 ml-1" />;
+      return <Check className="h-3.5 w-3.5 text-gray-400 dark:text-gray-500 ml-1" />;
     } else {
-      return <Check className="h-3.5 w-3.5 text-white/60 ml-1" />;
+      return <Check className="h-3.5 w-3.5 text-gray-300 dark:text-gray-600 ml-1" />;
     }
   };
 
   return (
-    <div className={`flex items-end ${isSender ? 'justify-end' : 'justify-start'} mb-1`}>
+    <div className={`flex items-end ${isSender ? 'justify-end' : 'justify-start'} mb-1 group`}>
       {/* Avatar for recipient */}
       {!isSender && showAvatar && !isConsecutive && (
         <img 
-          src={message.sender.avatar || `https://ui-avatars.com/api/?name=${message.sender.name}&background=3B82F6&color=fff`} 
+          src={message.sender.avatar || `https://ui-avatars.com/api/?name=${message.sender.name}&background=6366f1&color=fff`} 
           alt={message.sender.name} 
-          className="h-8 w-8 rounded-full mr-2 mb-1"
+          className="h-8 w-8 rounded-full mr-2 mb-1 ring-2 ring-white dark:ring-gray-800" 
         />
       )}
       
       {!isSender && (isConsecutive || !showAvatar) && <div className="w-8 mr-2"></div>}
       
-      <div className="group relative max-w-xs md:max-w-md">
+      <div className="relative max-w-xs md:max-w-md">
         {/* Message bubble */}
         <div className={getBubbleClass()}>
           {/* Sender name for group chats */}
           {!isSender && !isConsecutive && message.conversationIsGroup && (
-            <p className="text-xs font-medium text-primary-700 mb-1">
+            <p className="text-xs font-medium text-indigo-600 dark:text-indigo-400 mb-1">
               {message.sender.name}
             </p>
           )}
@@ -170,7 +168,7 @@ const MessageBubble = ({
           
           {/* Message metadata */}
           <div className={`flex items-center mt-1 ${isSender ? 'justify-end' : 'justify-start'}`}>
-            <span className={`text-xs ${isSender ? 'text-white/70' : 'text-gray-500'}`}>
+            <span className="text-xs text-gray-500 dark:text-gray-400">
               {formatDistanceToNow(new Date(message.createdAt), { addSuffix: true })}
             </span>
             {renderMessageStatus()}
@@ -178,42 +176,48 @@ const MessageBubble = ({
         </div>
         
         {/* Message options button */}
-        <button
-          onClick={() => setShowOptions(!showOptions)}
-          className="absolute top-2 right-0 p-1 rounded-full bg-gray-800 bg-opacity-0 text-transparent hover:bg-opacity-50 hover:text-white group-hover:opacity-100 opacity-0 transition-opacity -mr-8"
-        >
-          <MoreVertical className="h-4 w-4" />
-        </button>
-        
-        {/* Message options dropdown */}
-        {showOptions && (
-          <div className="absolute top-0 right-0 mt-8 -mr-8 w-32 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
-            <div className="py-1">
-              <button
-                className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                onClick={() => {
-                  // Handle reply
-                  setShowOptions(false);
-                }}
+        <div className="absolute top-2 right-0 -mr-12 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <button
+            onClick={() => setShowOptions(!showOptions)}
+            className="p-1.5 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors duration-200"
+          >
+            <MoreVertical className="h-4 w-4" />
+          </button>
+          
+          {/* Message options dropdown */}
+          <AnimatePresence>
+            {showOptions && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.15 }}
+                className="absolute top-0 right-0 mt-8 w-36 glass-panel divide-y divide-gray-200 dark:divide-gray-700"
               >
-                <Reply className="mr-2 h-4 w-4" />
-                Reply
-              </button>
-              {isSender && (
                 <button
-                  className="flex w-full items-center px-4 py-2 text-sm text-error-600 hover:bg-gray-100"
+                  className="flex w-full items-center gap-2 p-2 text-sm hover:bg-gray-100/50 dark:hover:bg-white/5 transition-colors duration-200"
+                  onClick={() => {
+                    // Handle reply
+                    setShowOptions(false);
+                  }}
+                >
+                  <Reply className="h-4 w-4" />
+                  Reply
+                </button>
+                <button
+                  className="flex w-full items-center gap-2 p-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100/50 dark:hover:bg-white/5 transition-colors duration-200"
                   onClick={() => {
                     // Handle delete
                     setShowOptions(false);
                   }}
                 >
-                  <Trash2 className="mr-2 h-4 w-4" />
+                  <Trash2 className="h-4 w-4" />
                   Delete
                 </button>
-              )}
-            </div>
-          </div>
-        )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   );

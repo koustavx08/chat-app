@@ -7,6 +7,7 @@ import MessageBubble from '../components/MessageBubble';
 import MessageInput from '../components/MessageInput';
 import { ArrowLeft, Phone, Video, UserPlus, Info, Users } from 'lucide-react';
 import { socket } from '../lib/socket';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const GroupChat = () => {
   const { groupId } = useParams<{ groupId: string }>();
@@ -130,17 +131,19 @@ const GroupChat = () => {
           </div>
         ) : (
           <div className="space-y-2">
-            {messages.map((message, index) => (
-              <MessageBubble
-                key={message._id}
-                message={{
-                  ...message,
-                  conversationIsGroup: true
-                }}
-                previousMessage={index > 0 ? messages[index - 1] : undefined}
-                nextMessage={index < messages.length - 1 ? messages[index + 1] : undefined}
-              />
-            ))}
+            <AnimatePresence initial={false}>
+              {messages.map((message, index) => (
+                <MessageBubble
+                  key={message._id}
+                  message={{
+                    ...message,
+                    conversationIsGroup: true
+                  }}
+                  previousMessage={index > 0 ? messages[index - 1] : undefined}
+                  nextMessage={index < messages.length - 1 ? messages[index + 1] : undefined}
+                />
+              ))}
+            </AnimatePresence>
             <div ref={messagesEndRef} />
           </div>
         )}

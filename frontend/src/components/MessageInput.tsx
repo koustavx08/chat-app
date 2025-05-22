@@ -6,6 +6,7 @@ import { socket } from '../lib/socket';
 import { useAuthStore } from '../stores/authStore';
 import { useConversationStore } from '../stores/conversationStore';
 import { encryptMessage } from '../lib/encryption';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface MessageInputProps {
   conversationId: string;
@@ -176,132 +177,141 @@ const MessageInput = ({ conversationId, isGroup = false }: MessageInputProps) =>
   const getFileIcon = (type: string) => {
     switch (type) {
       case 'image':
-        return <Image className="h-4 w-4 text-primary-500" />;
+        return <Image className="h-4 w-4 text-indigo-500 dark:text-indigo-400" />;
       case 'video':
-        return <Film className="h-4 w-4 text-secondary-500" />;
+        return <Film className="h-4 w-4 text-teal-500 dark:text-teal-400" />;
       default:
-        return <FileText className="h-4 w-4 text-gray-500" />;
+        return <FileText className="h-4 w-4 text-gray-500 dark:text-gray-400" />;
     }
   };
 
   return (
-    <div className="p-4 bg-white border-t border-gray-200">
+    <form
+      className="relative"
+      onSubmit={(e) => {
+        e.preventDefault();
+        handleSendMessage();
+      }}
+    >
       {/* Selected files preview */}
-      {selectedFiles.length > 0 && (
-        <div className="mb-3 flex flex-wrap gap-2">
-          {selectedFiles.map((file, index) => {
-            const fileType = getFileType(file.name);
-            return (
-              <div 
-                key={index} 
-                className="flex items-center bg-gray-100 rounded-md p-2 pr-3"
-              >
-                {getFileIcon(fileType)}
-                <span className="ml-2 text-sm truncate max-w-[150px]">
-                  {file.name}
-                </span>
-                <button
-                  onClick={() => removeFile(index)}
-                  className="ml-2 text-gray-500 hover:text-gray-700"
+      <AnimatePresence>
+        {selectedFiles.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            className="absolute bottom-full left-0 right-0 p-2 space-y-2"
+          >
+            {selectedFiles.map((file, index) => {
+              const fileType = getFileType(file.name);
+              return (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  className="flex items-center gap-2 p-2 rounded-lg bg-gray-100 dark:bg-gray-800"
                 >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      )}
-      
-      {/* Message input */}
-      <div className="flex items-end gap-2">
+                  {getFileIcon(fileType)}
+                  <span className="text-sm truncate flex-1">
+                    {file.name}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => removeFile(index)}
+                    className="p-1 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="flex items-center gap-2">
         <div className="relative">
           <button
             type="button"
             onClick={() => setShowAttachmentOptions(!showAttachmentOptions)}
-            className="p-2 rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+            className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors duration-200"
           >
             <Paperclip className="h-5 w-5" />
           </button>
-          
-          {/* Attachment options */}
-          {showAttachmentOptions && (
-            <div className="absolute bottom-full left-0 mb-2 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 p-2 z-10">
-              <div className="flex flex-col space-y-1">
+
+          <AnimatePresence>
+            {showAttachmentOptions && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                className="absolute bottom-full left-0 mb-2 glass-panel divide-y divide-gray-200 dark:divide-gray-700"
+              >
                 <button
+                  type="button"
                   onClick={() => handleFileSelect('image')}
-                  className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                  className="flex items-center gap-2 p-2 text-sm hover:bg-gray-100/50 dark:hover:bg-white/5 transition-colors duration-200 w-full"
                 >
-                  <Image className="mr-2 h-5 w-5 text-primary-500" />
+                  <Image className="h-4 w-4 text-indigo-500 dark:text-indigo-400" />
                   Image
                 </button>
                 <button
-                  onClick={() => handleFileSelect('document')}
-                  className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
-                >
-                  <FileText className="mr-2 h-5 w-5 text-gray-500" />
-                  Document
-                </button>
-                <button
+                  type="button"
                   onClick={() => handleFileSelect('video')}
-                  className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                  className="flex items-center gap-2 p-2 text-sm hover:bg-gray-100/50 dark:hover:bg-white/5 transition-colors duration-200 w-full"
                 >
-                  <Film className="mr-2 h-5 w-5 text-secondary-500" />
+                  <Film className="h-4 w-4 text-teal-500 dark:text-teal-400" />
                   Video
                 </button>
-              </div>
-            </div>
-          )}
-          
-          <input
-            type="file"
-            ref={fileInputRef}
-            className="hidden"
-            multiple
-            onChange={handleFileChange}
-          />
+                <button
+                  type="button"
+                  onClick={() => handleFileSelect('document')}
+                  className="flex items-center gap-2 p-2 text-sm hover:bg-gray-100/50 dark:hover:bg-white/5 transition-colors duration-200 w-full"
+                >
+                  <FileText className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                  Document
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-        
-        <div className="flex-1 relative">
-          <input
-            type="text"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSendMessage();
-              }
-              
-              if (message.trim()) {
-                handleTyping();
-              }
-            }}
-            className="w-full rounded-full bg-gray-100 border-0 py-3 pl-4 pr-12 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600"
-            placeholder={`Message ${isGroup ? currentConversation?.name : recipients[0]?.name || 'User'}`}
-            disabled={isUploading}
-          />
-          <button
-            type="button"
-            className="absolute right-2 bottom-2 p-1 rounded-full text-gray-500 hover:text-gray-700"
-          >
-            <Smile className="h-6 w-6" />
-          </button>
-        </div>
-        
+
+        <input
+          type="text"
+          value={message}
+          onChange={(e) => {
+            setMessage(e.target.value);
+            handleTyping();
+          }}
+          placeholder="Type a message..."
+          className="input flex-1 min-w-0"
+        />
+
         <button
           type="button"
-          onClick={handleSendMessage}
-          disabled={(!message.trim() && selectedFiles.length === 0) || isUploading}
-          className="p-3 rounded-full bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors duration-200"
         >
-          {isUploading ? (
-            <div className="h-5 w-5 border-t-2 border-b-2 border-white rounded-full animate-spin"></div>
-          ) : (
-            <Send className="h-5 w-5" />
-          )}
+          <Smile className="h-5 w-5" />
+        </button>
+
+        <button
+          type="submit"
+          disabled={isUploading || (!message && selectedFiles.length === 0)}
+          className="btn btn-primary !p-2"
+        >
+          <Send className="h-5 w-5" />
         </button>
       </div>
-    </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        className="hidden"
+        onChange={handleFileChange}
+        multiple
+      />
+    </form>
   );
 };
 

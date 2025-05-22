@@ -7,6 +7,7 @@ import MessageBubble from '../components/MessageBubble';
 import MessageInput from '../components/MessageInput';
 import { ArrowLeft, Phone, Video, Info } from 'lucide-react';
 import { socket } from '../lib/socket';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const DirectMessage = () => {
   const { conversationId } = useParams<{ conversationId: string }>();
@@ -66,7 +67,7 @@ const DirectMessage = () => {
   if (!currentConversation || !conversationId) {
     return (
       <div className="h-full flex items-center justify-center">
-        <p className="text-gray-500">Select a conversation</p>
+        <p className="text-gray-500 dark:text-gray-400">Select a conversation</p>
       </div>
     );
   }
@@ -76,7 +77,7 @@ const DirectMessage = () => {
   if (!otherParticipant) {
     return (
       <div className="h-full flex items-center justify-center">
-        <p className="text-gray-500">Conversation not found</p>
+        <p className="text-gray-500 dark:text-gray-400">Conversation not found</p>
       </div>
     );
   }
@@ -84,78 +85,104 @@ const DirectMessage = () => {
   return (
     <div className="h-full flex flex-col">
       {/* Chat header */}
-      <div className="px-4 py-3 bg-white border-b border-gray-200 flex items-center">
-        <button className="md:hidden text-gray-500 mr-2">
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="p-4 glass-panel rounded-none md:rounded-t-xl flex items-center gap-3"
+      >
+        <button className="md:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition-colors duration-200">
           <ArrowLeft className="h-5 w-5" />
         </button>
         
         <div className="relative">
           <img
-            src={otherParticipant.avatar || `https://ui-avatars.com/api/?name=${otherParticipant.name}&background=3B82F6&color=fff`}
+            src={otherParticipant.avatar || `https://ui-avatars.com/api/?name=${otherParticipant.name}&background=6366f1&color=fff`}
             alt={otherParticipant.name}
-            className="h-10 w-10 rounded-full"
+            className="h-10 w-10 rounded-full ring-2 ring-white dark:ring-gray-800"
           />
           {currentConversation.online && (
-            <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-success-500 ring-2 ring-white"></span>
+            <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-teal-500 ring-2 ring-white dark:ring-gray-800"></span>
           )}
         </div>
         
-        <div className="ml-3 flex-1">
+        <div className="flex-1">
           <div className="flex items-center">
-            <h2 className="text-lg font-medium text-gray-900">{otherParticipant.name}</h2>
+            <h2 className="text-lg font-semibold">{otherParticipant.name}</h2>
           </div>
           {isTyping ? (
-            <p className="text-sm text-primary-600 animate-pulse">typing...</p>
+            <p className="text-sm text-indigo-600 dark:text-indigo-400 animate-pulse">typing...</p>
           ) : (
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
               {currentConversation.online ? 'Online' : 'Offline'}
             </p>
           )}
         </div>
         
-        <div className="flex items-center space-x-2">
-          <button className="p-2 rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-100">
+        <div className="flex items-center gap-1">
+          <button className="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors duration-200">
             <Phone className="h-5 w-5" />
           </button>
-          <button className="p-2 rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-100">
+          <button className="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors duration-200">
             <Video className="h-5 w-5" />
           </button>
-          <button className="p-2 rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-100">
+          <button className="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors duration-200">
             <Info className="h-5 w-5" />
           </button>
         </div>
-      </div>
+      </motion.div>
       
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
+      <div className="flex-1 overflow-y-auto p-4">
         {loading ? (
           <div className="flex justify-center py-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary-600"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-600 dark:border-indigo-400"></div>
           </div>
         ) : messages.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center">
-            <div className="text-center">
-              <p className="text-gray-500 mb-2">No messages yet</p>
-              <p className="text-sm text-gray-400">Say hello to {otherParticipant.name}!</p>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="h-full flex flex-col items-center justify-center"
+          >
+            <div className="glass-panel p-8 text-center">
+              <p className="text-gray-600 dark:text-gray-300 mb-3">No messages yet</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Say hello to {otherParticipant.name}!
+              </p>
             </div>
-          </div>
+          </motion.div>
         ) : (
           <div className="space-y-2">
-            {messages.map((message, index) => (
-              <MessageBubble
-                key={message._id}
-                message={message}
-                previousMessage={index > 0 ? messages[index - 1] : undefined}
-                nextMessage={index < messages.length - 1 ? messages[index + 1] : undefined}
-              />
-            ))}
+            <AnimatePresence initial={false}>
+              {messages.map((message, index) => (
+                <motion.div
+                  key={message._id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <MessageBubble
+                    message={message}
+                    previousMessage={index > 0 ? messages[index - 1] : undefined}
+                    nextMessage={index < messages.length - 1 ? messages[index + 1] : undefined}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
             <div ref={messagesEndRef} />
           </div>
         )}
       </div>
       
       {/* Message input */}
-      <MessageInput conversationId={conversationId} />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="glass-panel rounded-none md:rounded-b-xl p-4"
+      >
+        <MessageInput conversationId={conversationId} />
+      </motion.div>
     </div>
   );
 };
