@@ -1,12 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Paperclip, Send, Smile, X, Image, FileText, Film } from 'lucide-react';
+import { Paperclip, Send, Smile, X, Image, FileText, Film, Plus } from 'lucide-react';
 import { useMessageStore } from '../stores/messageStore';
 import { socket } from '../lib/socket';
 import { useAuthStore } from '../stores/authStore';
 import { useConversationStore } from '../stores/conversationStore';
 import { encryptMessage } from '../lib/encryption';
 import { motion, AnimatePresence } from 'framer-motion';
+import data from '@emoji-mart/data';
+import Picker from '@emoji-mart/react';
 
 interface MessageInputProps {
   conversationId: string;
@@ -20,22 +22,21 @@ const MessageInput = ({ conversationId, isGroup = false }: MessageInputProps) =>
   const [message, setMessage] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [showAttachmentOptions, setShowAttachmentOptions] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   
   const recipients = currentConversation?.participants.filter(p => p._id !== user?._id) || [];
   
   const handleTyping = () => {
-    // Cancel previous timeout
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
     
-    // Emit typing event
     sendTypingStatus(conversationId, true);
     
-    // Set timeout to stop typing indicator after 3 seconds
     typingTimeoutRef.current = setTimeout(() => {
       sendTypingStatus(conversationId, false);
     }, 3000);
@@ -81,6 +82,14 @@ const MessageInput = ({ conversationId, isGroup = false }: MessageInputProps) =>
   const removeFile = (index: number) => {
     setSelectedFiles(prev => prev.filter((_, i) => i !== index));
   };
+
+  const handleEmojiSelect = (emoji: any) => {
+    setMessage(prev => prev + emoji.native);
+    setShowEmojiPicker(false);
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  };
   
   const handleSendMessage = async () => {
     if ((!message && selectedFiles.length === 0) || !user) return;
@@ -89,7 +98,6 @@ const MessageInput = ({ conversationId, isGroup = false }: MessageInputProps) =>
       if (selectedFiles.length > 0) {
         setIsUploading(true);
         
-        // Upload files and get their URLs
         const formData = new FormData();
         selectedFiles.forEach(file => {
           formData.append('files', file);
@@ -109,7 +117,6 @@ const MessageInput = ({ conversationId, isGroup = false }: MessageInputProps) =>
         
         const { fileUrls } = await response.json();
         
-        // Send message with file attachments
         for (const fileUrl of fileUrls) {
           const fileType = getFileType(fileUrl.originalname);
           const encryptedContent = encryptMessage(fileUrl.path);
@@ -123,7 +130,6 @@ const MessageInput = ({ conversationId, isGroup = false }: MessageInputProps) =>
           });
         }
         
-        // If there's also text, send it as a separate message
         if (message.trim()) {
           const encryptedContent = encryptMessage(message);
           await sendMessage({
@@ -136,7 +142,6 @@ const MessageInput = ({ conversationId, isGroup = false }: MessageInputProps) =>
         
         setSelectedFiles([]);
       } else {
-        // Send text message
         const encryptedContent = encryptMessage(message);
         await sendMessage({
           conversationId,
@@ -153,7 +158,6 @@ const MessageInput = ({ conversationId, isGroup = false }: MessageInputProps) =>
       }
     } catch (error) {
       console.error('Error sending message:', error);
-      // Handle error (show toast notification, etc.)
     } finally {
       setIsUploading(false);
     }
@@ -177,9 +181,9 @@ const MessageInput = ({ conversationId, isGroup = false }: MessageInputProps) =>
   const getFileIcon = (type: string) => {
     switch (type) {
       case 'image':
-        return <Image className="h-4 w-4 text-indigo-500 dark:text-indigo-400" />;
+        return <Image className="h-4 w-4 text-primary-500 dark:text-primary-400" />;
       case 'video':
-        return <Film className="h-4 w-4 text-teal-500 dark:text-teal-400" />;
+        return <Film className="h-4 w-4 text-accent-500 dark:text-accent-400" />;
       default:
         return <FileText className="h-4 w-4 text-gray-500 dark:text-gray-400" />;
     }
@@ -237,7 +241,7 @@ const MessageInput = ({ conversationId, isGroup = false }: MessageInputProps) =>
             onClick={() => setShowAttachmentOptions(!showAttachmentOptions)}
             className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors duration-200"
           >
-            <Paperclip className="h-5 w-5" />
+            {showAttachmentOptions ? <X className="h-5 w-5" /> : <Paperclip className="h-5 w-5" />}
           </button>
 
           <AnimatePresence>
@@ -251,23 +255,23 @@ const MessageInput = ({ conversationId, isGroup = false }: MessageInputProps) =>
                 <button
                   type="button"
                   onClick={() => handleFileSelect('image')}
-                  className="flex items-center gap-2 p-2 text-sm hover:bg-gray-100/50 dark:hover:bg-white/5 transition-colors duration-200 w-full"
+                  className="dropdown-item"
                 >
-                  <Image className="h-4 w-4 text-indigo-500 dark:text-indigo-400" />
+                  <Image className="h-4 w-4 text-primary-500 dark:text-primary-400" />
                   Image
                 </button>
                 <button
                   type="button"
                   onClick={() => handleFileSelect('video')}
-                  className="flex items-center gap-2 p-2 text-sm hover:bg-gray-100/50 dark:hover:bg-white/5 transition-colors duration-200 w-full"
+                  className="dropdown-item"
                 >
-                  <Film className="h-4 w-4 text-teal-500 dark:text-teal-400" />
+                  <Film className="h-4 w-4 text-accent-500 dark:text-accent-400" />
                   Video
                 </button>
                 <button
                   type="button"
                   onClick={() => handleFileSelect('document')}
-                  className="flex items-center gap-2 p-2 text-sm hover:bg-gray-100/50 dark:hover:bg-white/5 transition-colors duration-200 w-full"
+                  className="dropdown-item"
                 >
                   <FileText className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                   Document
@@ -278,6 +282,7 @@ const MessageInput = ({ conversationId, isGroup = false }: MessageInputProps) =>
         </div>
 
         <input
+          ref={inputRef}
           type="text"
           value={message}
           onChange={(e) => {
@@ -288,20 +293,47 @@ const MessageInput = ({ conversationId, isGroup = false }: MessageInputProps) =>
           className="input flex-1 min-w-0"
         />
 
-        <button
-          type="button"
-          className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors duration-200"
-        >
-          <Smile className="h-5 w-5" />
-        </button>
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+            className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors duration-200"
+          >
+            <Smile className="h-5 w-5" />
+          </button>
 
-        <button
+          <AnimatePresence>
+            {showEmojiPicker && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.1 }}
+                className="absolute bottom-full right-0 mb-2"
+              >
+                <div className="glass-panel p-2">
+                  <Picker
+                    data={data}
+                    onEmojiSelect={handleEmojiSelect}
+                    theme={document.documentElement.classList.contains('dark') ? 'dark' : 'light'}
+                    previewPosition="none"
+                    skinTonePosition="none"
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        <motion.button
           type="submit"
           disabled={isUploading || (!message && selectedFiles.length === 0)}
           className="btn btn-primary !p-2"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
           <Send className="h-5 w-5" />
-        </button>
+        </motion.button>
       </div>
 
       <input
