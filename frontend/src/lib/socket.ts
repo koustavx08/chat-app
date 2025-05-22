@@ -50,5 +50,3 @@ export const disconnectSocket = () => {
     socket = null;
   }
 };
-
-export { socket }
