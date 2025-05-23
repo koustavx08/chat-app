@@ -25,4 +25,4 @@ app.post('/api/auth/register', (req, res) => {
 app.options('*', cors());
 
 // Export the Express app as a serverless function
-module.exports = app; 
+module.exports = app;
