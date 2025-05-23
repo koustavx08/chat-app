@@ -10,9 +10,7 @@ let io;
 const initSocketServer = (server) => {
   io = socketio(server, {
     cors: {
-      origin: process.env.NODE_ENV === 'production'
-        ? process.env.FRONTEND_URL
-        : ['http://localhost:5173', 'http://127.0.0.1:5173'],
+      origin: process.env.FRONTEND_URL || 'https://chat-app-x08.vercel.app',
       methods: ['GET', 'POST'],
       credentials: true
     }

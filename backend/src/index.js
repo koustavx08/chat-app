@@ -23,16 +23,20 @@ const server = http.createServer(app);
 // Connect to MongoDB
 connectDB();
 
+// Trust proxy for Render deployments (enables correct IP and protocol handling)
+if (process.env.RENDER) {
+  app.set('trust proxy', 1);
+}
+
 // CORS configuration
 const allowedOrigins = [
-  'https://chat-app-x08.vercel.app',
+  process.env.FRONTEND_URL || 'https://chat-app-x08.vercel.app',
   'http://localhost:5173',
   'http://127.0.0.1:5173'
 ];
 
 const corsOptions = {
   origin: function (origin, callback) {
-    console.log('CORS request from origin:', origin);
     // allow requests with no origin (like mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) {
@@ -47,8 +51,6 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-
-// Handle preflight requests for all routes
 app.options('*', cors(corsOptions));
 
 // Middleware
@@ -79,6 +81,11 @@ if (process.env.NODE_ENV === 'development') {
   app.use('/api/dev', devRoutes);
   logger.info('Development routes enabled');
 }
+
+// Catch-all 404 handler for undefined API routes
+app.use('/api/*', (req, res) => {
+  res.status(404).json({ success: false, error: 'API route not found' });
+});
 
 // Initialize Socket.io
 initSocketServer(server);
