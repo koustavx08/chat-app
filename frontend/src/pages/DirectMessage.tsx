@@ -12,11 +12,10 @@ import { SocketEvents } from '../types';
 
 const DirectMessage = () => {
   const { conversationId } = useParams<{ conversationId: string }>();
-  const { messages, loading, error, sendMessage: sendMessageAction, markAsRead, fetchMessages } = useMessageStore();
+  const { messages, loading, markAsRead, fetchMessages } = useMessageStore();
   const { user } = useAuthStore();
   const { currentConversation, getConversation } = useConversationStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
   const [isTyping, setIsTyping] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
   

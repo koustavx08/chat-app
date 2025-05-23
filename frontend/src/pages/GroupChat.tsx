@@ -2,22 +2,19 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useMessageStore } from '../stores/messageStore';
 import { useConversationStore } from '../stores/conversationStore';
-import { useAuthStore } from '../stores/authStore';
 import MessageBubble from '../components/MessageBubble';
 import MessageInput from '../components/MessageInput';
-import { ArrowLeft, Phone, Video, UserPlus, Info, Users } from 'lucide-react';
+import { ArrowLeft, Video, UserPlus, Info, Users } from 'lucide-react';
 import { getSocket } from '../lib/socket';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { SocketEvents } from '../types';
 
 const GroupChat = () => {
   const { groupId } = useParams<{ groupId: string }>();
-  const { user } = useAuthStore();
-  const { messages, loading, error, sendMessage: sendMessageAction, markAsRead, fetchMessages } = useMessageStore();
+  const { messages, loading, fetchMessages } = useMessageStore();
   const { currentConversation, getConversation } = useConversationStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
-  const [isTyping, setIsTyping] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
   
   useEffect(() => {
@@ -174,7 +171,7 @@ const GroupChat = () => {
       )}
       
       {/* Message input */}
-      <MessageInput conversationId={groupId} isGroup={true} />
+      <MessageInput conversationId={groupId} />
     </div>
   );
 };

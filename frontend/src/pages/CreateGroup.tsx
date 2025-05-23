@@ -79,11 +79,8 @@ const CreateGroup = () => {
     
     try {
       const participantIds = selectedUsers.map(user => user._id);
-      const group = await createGroup({
-        name: data.name,
-        description: data.description || '',
-        participants: participantIds
-      });
+      // Pass name and participantIds directly as arguments
+      const group = await createGroup(data.name, participantIds);
       
       toast.success('Group created successfully!');
       navigate(`/group/${group._id}`);

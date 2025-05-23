@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import { Paperclip, Send, Smile, X, Image, FileText, Film } from 'lucide-react';
 import { useMessageStore } from '../stores/messageStore';
 import { useAuthStore } from '../stores/authStore';
-import { useConversationStore } from '../stores/conversationStore';
 import { encryptMessage } from '../lib/encryption';
 import { motion, AnimatePresence } from 'framer-motion';
 import data from '@emoji-mart/data';
@@ -10,12 +9,10 @@ import Picker from '@emoji-mart/react';
 
 interface MessageInputProps {
   conversationId: string;
-  isGroup?: boolean;
 }
 
-const MessageInput = ({ conversationId, isGroup }: MessageInputProps) => {
+const MessageInput = ({ conversationId }: MessageInputProps) => {
   const { user } = useAuthStore();
-  const { currentConversation } = useConversationStore();
   const { sendMessage, sendTypingStatus } = useMessageStore();
   const [message, setMessage] = useState('');
   const [isUploading, setIsUploading] = useState(false);
@@ -25,8 +22,6 @@ const MessageInput = ({ conversationId, isGroup }: MessageInputProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  
-  const recipients = currentConversation?.participants.filter(p => p._id !== user?._id) || [];
   
   const handleTyping = () => {
     if (typingTimeoutRef.current) {
@@ -48,29 +43,14 @@ const MessageInput = ({ conversationId, isGroup }: MessageInputProps) => {
     };
   }, []);
   
-  const handleFileSelect = (type: string) => {
+  const handleFileSelect = () => { // Removed unused 'type' parameter
     if (fileInputRef.current) {
-      fileInputRef.current.setAttribute('accept', getAcceptString(type));
       fileInputRef.current.click();
     }
-    setShowAttachmentOptions(false);
   };
-  
-  const getAcceptString = (type: string) => {
-    switch (type) {
-      case 'image':
-        return 'image/*';
-      case 'document':
-        return '.pdf,.doc,.docx,.xls,.xlsx,.txt';
-      case 'video':
-        return 'video/*';
-      default:
-        return '*/*';
-    }
-  };
-  
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
     if (files && files.length > 0) {
       const fileArray = Array.from(files);
       setSelectedFiles(prev => [...prev, ...fileArray]);
@@ -252,7 +232,7 @@ const MessageInput = ({ conversationId, isGroup }: MessageInputProps) => {
               >
                 <button
                   type="button"
-                  onClick={() => handleFileSelect('image')}
+                  onClick={handleFileSelect}
                   className="dropdown-item"
                 >
                   <Image className="h-4 w-4 text-primary-500 dark:text-primary-400" />
@@ -260,7 +240,7 @@ const MessageInput = ({ conversationId, isGroup }: MessageInputProps) => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleFileSelect('video')}
+                  onClick={handleFileSelect}
                   className="dropdown-item"
                 >
                   <Film className="h-4 w-4 text-accent-500 dark:text-accent-400" />
@@ -268,7 +248,7 @@ const MessageInput = ({ conversationId, isGroup }: MessageInputProps) => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleFileSelect('document')}
+                  onClick={handleFileSelect}
                   className="dropdown-item"
                 >
                   <FileText className="h-4 w-4 text-gray-500 dark:text-gray-400" />

@@ -1,138 +1,98 @@
 import { create } from 'zustand';
-import { api } from '../lib/api';
 import { Conversation } from '../types';
+import { getConversations, getConversation, createGroup, addParticipant, removeParticipant } from '../api/conversations';
 
 interface ConversationState {
   conversations: Conversation[];
   currentConversation: Conversation | null;
   loading: boolean;
   error: string | null;
-  isOpen: boolean;
+  isOpen: boolean; // Added for sidebar state
   fetchConversations: () => Promise<void>;
   getConversation: (id: string) => Promise<void>;
-  createConversation: (userId: string) => Promise<Conversation>;
-  createGroup: (groupData: { name: string; description: string; participants: string[] }) => Promise<Conversation>;
-  updateTypingStatus: (conversationId: string, isTyping: boolean) => void;
-  markAsRead: (conversationId: string) => Promise<void>;
-  setCurrentConversation: (conversation: Conversation) => void;
-  toggleSidebar: () => void;
+  createGroup: (name: string, participants: string[]) => Promise<Conversation>; // Modified to return Conversation
+  setCurrentConversation: (conversation: Conversation) => void; // Added setCurrentConversation
+  addParticipant: (conversationId: string, userId: string) => Promise<void>;
+  removeParticipant: (conversationId: string, userId: string) => Promise<void>;
+  toggleSidebar: () => void; // Added for sidebar state
 }
 
-export const useConversationStore = create<ConversationState>((set, get) => ({
+export const useConversationStore = create<ConversationState>((set) => ({
   conversations: [],
   currentConversation: null,
   loading: false,
   error: null,
-  isOpen: window.innerWidth >= 768, // Default open on desktop, closed on mobile
-  
+  isOpen: false, // Default state for sidebar
+  setCurrentConversation: (conversation) => set({ currentConversation: conversation }), // Added setCurrentConversation implementation
   fetchConversations: async () => {
     set({ loading: true, error: null });
     try {
-      const response = await api.get('/conversations');
-      set({ conversations: response.data, loading: false });
+      const conversations = await getConversations();
+      set({ conversations, loading: false });
     } catch (error) {
-      set({ 
-        error: 'Failed to load conversations', 
-        loading: false 
-      });
-    }
-  },
-  
-  getConversation: async (id: string) => {
-    // First check if we already have it
-    const { conversations } = get();
-    const existing = conversations.find(c => c._id === id);
-    
-    if (existing) {
-      set({ currentConversation: existing });
-      return;
-    }
-    
-    set({ loading: true, error: null });
-    try {
-      const response = await api.get(`/conversations/${id}`);
-      set({ 
-        currentConversation: response.data,
-        loading: false 
-      });
-    } catch (error) {
-      set({ 
-        error: 'Failed to load conversation', 
-        loading: false 
-      });
-    }
-  },
-  
-  createConversation: async (userId: string) => {
-    set({ loading: true, error: null });
-    try {
-      const response = await api.post('/conversations', { userId });
-      const newConversation = response.data;
-      
-      set(state => ({
-        conversations: [newConversation, ...state.conversations],
-        currentConversation: newConversation,
-        loading: false
-      }));
-      
-      return newConversation;
-    } catch (error) {
-      set({ 
-        error: 'Failed to create conversation', 
-        loading: false 
-      });
+      set({ error: (error as Error).message, loading: false });
       throw error;
     }
   },
-  
-  createGroup: async (groupData) => {
+  getConversation: async (id) => {
     set({ loading: true, error: null });
     try {
-      const response = await api.post('/conversations/group', groupData);
-      const newGroup = response.data;
-      
-      set(state => ({
-        conversations: [newGroup, ...state.conversations],
-        currentConversation: newGroup,
-        loading: false
-      }));
-      
-      return newGroup;
+      const conversation = await getConversation(id);
+      set({ currentConversation: conversation, loading: false });
     } catch (error) {
-      set({ 
-        error: 'Failed to create group', 
-        loading: false 
-      });
+      set({ error: (error as Error).message, loading: false });
       throw error;
     }
   },
-  
-  updateTypingStatus: (conversationId: string, isTyping: boolean) => {
-    // This could be used to update UI for typing indicators
-  },
-  
-  markAsRead: async (conversationId: string) => {
+  createGroup: async (name, participants) => {
+    set({ loading: true, error: null });
     try {
-      await api.post(`/conversations/${conversationId}/read`);
-      
-      // Update local state to reflect messages as read
-      set(state => ({
-        conversations: state.conversations.map(conv => 
-          conv._id === conversationId 
-            ? { ...conv, unreadCount: 0 } 
-            : conv
-        )
+      const conversation = await createGroup(name, participants);
+      set((state) => ({
+        conversations: [...state.conversations, conversation],
+        loading: false
       }));
+      return conversation; // Return the created Conversation object
     } catch (error) {
-      console.error('Failed to mark conversation as read:', error);
+      set({ error: (error as Error).message, loading: false });
+      throw error;
     }
   },
-  
-  setCurrentConversation: (conversation: Conversation) => {
-    set({ currentConversation: conversation });
+  addParticipant: async (conversationId, userId) => {
+    set({ loading: true, error: null });
+    try {
+      const conversation = await addParticipant(conversationId, userId);
+      set((state) => ({
+        conversations: state.conversations.map((c) =>
+          c._id === conversationId ? conversation : c
+        ),
+        currentConversation: state.currentConversation?._id === conversationId
+          ? conversation
+          : state.currentConversation,
+        loading: false
+      }));
+    } catch (error) {
+      set({ error: (error as Error).message, loading: false });
+      throw error;
+    }
   },
-  
-  toggleSidebar: () => {
-    set(state => ({ isOpen: !state.isOpen }));
-  }
+  removeParticipant: async (conversationId, userId) => {
+    set({ loading: true, error: null });
+    try {
+      const conversation = await removeParticipant(conversationId, userId);
+      set((state) => ({
+        conversations: state.conversations.map((c) =>
+          c._id === conversationId ? conversation : c
+        ),
+        currentConversation: state.currentConversation?._id === conversationId
+          ? conversation
+          : state.currentConversation,
+        loading: false
+      }));
+    } catch (error) {
+      set({ error: (error as Error).message, loading: false });
+      throw error;
+    }
+  },
+  toggleSidebar: () => set((state) => ({ isOpen: !state.isOpen })), // Implementation for toggleSidebar
 }));

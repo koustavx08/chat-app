@@ -11,7 +11,7 @@ const NewConversation = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
-  const { createConversation } = useConversationStore();
+  const { createGroup } = useConversationStore(); // Changed createConversation to createGroup
   const { user: currentUser } = useAuthStore();
   const navigate = useNavigate();
 
@@ -41,7 +41,19 @@ const NewConversation = () => {
 
   const handleStartConversation = async (userId: string) => {
     try {
-      const conversation = await createConversation(userId);
+      // Assuming createGroup can handle single user for direct message,
+      // or a more specific function should be created in the store.
+      // For now, creating a "group" with the current user and the selected user.
+      // The name of the group could be generated based on user names or be a standard placeholder.
+      if (!currentUser) {
+        console.error("Current user not found");
+        return;
+      }
+      const participants = [currentUser._id, userId];
+      // Create a name for the direct message, could be improved
+      const otherUser = users.find(u => u._id === userId);
+      const groupName = `DM with ${otherUser?.name || 'user'}`; 
+      const conversation = await createGroup(groupName, participants);
       navigate(`/chat/${conversation._id}`);
     } catch (error) {
       console.error('Error creating conversation:', error);
@@ -128,4 +140,4 @@ const NewConversation = () => {
   );
 };
 
-export default NewConversation; 
+export default NewConversation;

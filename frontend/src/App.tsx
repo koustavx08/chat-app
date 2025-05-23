@@ -15,17 +15,17 @@ import NewConversation from './pages/NewConversation';
 import { initializeSocketConnection } from './lib/socket';
 
 function App() {
-  const { token, isAuthenticated, loading, checkAuth } = useAuthStore();
+  const { isAuthenticated, loading, checkAuthStatus } = useAuthStore();
 
   useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
+    checkAuthStatus();
+  }, [checkAuthStatus]);
 
   useEffect(() => {
-    if (isAuthenticated && token) {
-      initializeSocketConnection(token);
+    if (isAuthenticated) {
+      initializeSocketConnection();
     }
-  }, [isAuthenticated, token]);
+  }, [isAuthenticated]);
 
   if (loading) {
     return (

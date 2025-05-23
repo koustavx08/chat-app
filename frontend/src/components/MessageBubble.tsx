@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { formatDistanceToNow, format } from 'date-fns';
-import { Check, CheckCheck, Download, Image, FileText, Film, MoreVertical, Trash2, Reply } from 'lucide-react';
+import { Check, CheckCheck, Download, FileText, MoreVertical, Trash2, Reply } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Message as MessageType } from '../types';
 import { useAuthStore } from '../stores/authStore';

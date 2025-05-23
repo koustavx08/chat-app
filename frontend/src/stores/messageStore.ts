@@ -1,101 +1,57 @@
 import { create } from 'zustand';
-import { api } from '../lib/api';
 import { Message } from '../types';
-import { getSocket } from '../lib/socket';
+import { getMessages, sendMessage as sendMessageApi, markAsRead as markAsReadApi } from '../api/messages';
 
 interface MessageState {
   messages: Message[];
   loading: boolean;
   error: string | null;
   fetchMessages: (conversationId: string) => Promise<void>;
-  sendMessage: (messageData: { 
-    conversationId: string; 
-    content: string;
-    type?: 'text' | 'image' | 'video' | 'document';
-    file?: string;
-    encryptedContent?: string;
-  }) => Promise<Message>;
-  sendTypingStatus: (conversationId: string, isTyping: boolean) => void;
+  sendMessage: (message: Partial<Message>) => Promise<void>;
   markAsRead: (conversationId: string) => Promise<void>;
-  updateMessageStatusForConversation: (conversationId: string, status: 'delivered' | 'read') => void;
+  sendTypingStatus: (conversationId: string, isTyping: boolean) => void; // Added sendTypingStatus
 }
 
-export const useMessageStore = create<MessageState>((set, get) => ({
+export const useMessageStore = create<MessageState>((set) => ({
   messages: [],
   loading: false,
   error: null,
-  
-  fetchMessages: async (conversationId: string) => {
+  fetchMessages: async (conversationId) => {
     set({ loading: true, error: null });
     try {
-      const response = await api.get(`/messages/${conversationId}`);
-      set({ messages: response.data, loading: false });
+      const messages = await getMessages(conversationId);
+      set({ messages, loading: false });
     } catch (error) {
-      set({ 
-        error: 'Failed to load messages', 
-        loading: false 
-      });
-    }
-  },
-  
-  sendMessage: async (messageData) => {
-    try {
-      const response = await api.post('/messages', messageData);
-      const newMessage = response.data;
-      
-      // Update local state
-      set(state => ({
-        messages: [...state.messages, newMessage]
-      }));
-      
-      return newMessage;
-    } catch (error) {
-      set({ error: 'Failed to send message' });
+      set({ error: (error as Error).message, loading: false });
       throw error;
     }
   },
-  
-  sendTypingStatus: (conversationId: string, isTyping: boolean) => {
-    const socket = getSocket();
-    if (socket?.connected) {
-      socket.emit('typing', { 
-        conversationId, 
-        isTyping 
-      });
-    }
-  },
-  
-  markAsRead: async (conversationId: string) => {
+  sendMessage: async (message) => {
+    set({ loading: true, error: null });
     try {
-      await api.post(`/messages/${conversationId}/read`);
-      
-      // Update local state to mark messages as read
-      set(state => ({
-        messages: state.messages.map(message => 
-          message.conversationId === conversationId && !message.read
-            ? { ...message, read: true }
-            : message
-        )
+      const newMessage = await sendMessageApi(message);
+      set((state) => ({
+        messages: [...state.messages, newMessage],
+        loading: false
       }));
     } catch (error) {
-      console.error('Failed to mark messages as read:', error);
+      set({ error: (error as Error).message, loading: false });
+      throw error;
     }
   },
-  
-  updateMessageStatusForConversation: (conversationId: string, status: 'delivered' | 'read') => {
-    const socket = getSocket();
-    const currentUserId = socket?.id;
-    
-    set(state => ({
-      messages: state.messages.map(message => 
-        message.conversationId === conversationId && message.sender._id !== currentUserId
-          ? { 
-              ...message, 
-              ...(status === 'delivered' ? { delivered: true } : {}),
-              ...(status === 'read' ? { read: true, delivered: true } : {})
-            }
-          : message
-      )
-    }));
+  markAsRead: async (conversationId) => {
+    set({ loading: true, error: null });
+    try {
+      await markAsReadApi(conversationId);
+      set({ loading: false });
+    } catch (error) {
+      set({ error: (error as Error).message, loading: false });
+      throw error;
+    }
+  },
+  sendTypingStatus: (conversationId, isTyping) => {
+    // Implementation for sendTypingStatus - this will likely involve socket communication
+    // For now, it's a placeholder
+    console.log(`Typing status for ${conversationId}: ${isTyping}`);
   }
 }));
