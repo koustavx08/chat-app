@@ -52,6 +52,11 @@ app.use('/api/users', userRoutes);
 app.use('/api/conversations', conversationRoutes);
 app.use('/api/messages', messageRoutes);
 
+// Health check or root route
+app.get('/', (req, res) => {
+  res.status(200).json({ message: 'Chat backend is running!' });
+});
+
 // Development routes - only available in development mode
 if (process.env.NODE_ENV === 'development') {
   app.use('/api/dev', devRoutes);
