@@ -1,6 +1,10 @@
 import axios from 'axios';
 
-const baseURL = '/api';
+// Use VITE_API_BASE_URL from environment, fallback to '/api' and warn if missing
+const baseURL = import.meta.env.VITE_API_BASE_URL || '/api';
+if (!import.meta.env.VITE_API_BASE_URL) {
+  console.warn('VITE_API_BASE_URL is not set. Using default /api.');
+}
 
 export const api = axios.create({
   baseURL,

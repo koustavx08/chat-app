@@ -8,7 +8,12 @@ export const initializeSocketConnection = () => {
     const token = getAuthToken();
     if (!token) return null;
 
-    socket = io(import.meta.env.VITE_API_URL || 'http://localhost:3000', {
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+    if (!import.meta.env.VITE_API_BASE_URL) {
+      console.warn('VITE_API_BASE_URL is not set. Using default http://localhost:3000 for socket connection.');
+    }
+
+    socket = io(apiBaseUrl, {
       auth: {
         token
       }
