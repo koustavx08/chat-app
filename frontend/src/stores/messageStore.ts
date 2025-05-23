@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { api } from '../lib/api';
 import { Message } from '../types';
-import { socket } from '../lib/socket';
+import { getSocket } from '../lib/socket';
 
 interface MessageState {
   messages: Message[];
@@ -56,7 +56,8 @@ export const useMessageStore = create<MessageState>((set, get) => ({
   },
   
   sendTypingStatus: (conversationId: string, isTyping: boolean) => {
-    if (socket) {
+    const socket = getSocket();
+    if (socket?.connected) {
       socket.emit('typing', { 
         conversationId, 
         isTyping 
@@ -82,9 +83,12 @@ export const useMessageStore = create<MessageState>((set, get) => ({
   },
   
   updateMessageStatusForConversation: (conversationId: string, status: 'delivered' | 'read') => {
+    const socket = getSocket();
+    const currentUserId = socket?.id;
+    
     set(state => ({
       messages: state.messages.map(message => 
-        message.conversationId === conversationId && message.sender._id !== socket.id
+        message.conversationId === conversationId && message.sender._id !== currentUserId
           ? { 
               ...message, 
               ...(status === 'delivered' ? { delivered: true } : {}),

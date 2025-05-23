@@ -1,19 +1,20 @@
 import { io, Socket } from 'socket.io-client';
+import { SocketEvents } from '../types';
 
-export let socket: Socket | null = null;
+export let socket: Socket<SocketEvents> | null = null;
 
-export const initializeSocketConnection = (token: string) => {
+export const initializeSocketConnection = (token: string): Socket<SocketEvents> | null => {
   if (socket) {
     // If socket already exists and is connected, return
-    if (socket.connected) return;
+    if (socket.connected) return socket;
     
     // If socket exists but is disconnected, reconnect it
     socket.connect();
-    return;
+    return socket;
   }
   
   // Create new socket connection
-  socket = io({
+  socket = io<SocketEvents>({
     auth: {
       token
     },
@@ -39,13 +40,16 @@ export const initializeSocketConnection = (token: string) => {
     }
   });
   
-  // Return the socket instance
   return socket;
 };
 
-export const disconnectSocket = () => {
+export const disconnectSocket = (): void => {
   if (socket) {
     socket.disconnect();
     socket = null;
   }
+};
+
+export const getSocket = (): Socket<SocketEvents> | null => {
+  return socket;
 };

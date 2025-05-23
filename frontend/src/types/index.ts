@@ -4,6 +4,8 @@ export interface User {
   email: string;
   avatar?: string;
   bio?: string;
+  isOnline?: boolean;
+  lastSeen?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -36,3 +38,19 @@ export interface Conversation {
   updatedAt: string;
   online?: boolean;
 }
+
+// Add type for socket events
+export interface SocketEvents {
+  'typing': (data: { conversationId: string; isTyping: boolean }) => void;
+  'message': (message: Message) => void;
+  'message:delivered': (data: { messageId: string; conversationId: string }) => void;
+  'message:read': (data: { messageId: string; conversationId: string }) => void;
+  'user:online': (userId: string) => void;
+  'user:offline': (userId: string) => void;
+}
+
+// Add type for event handlers
+export type EventHandler = (event: Event) => void;
+export type HTMLElementWithClosest = HTMLElement & {
+  closest(selector: string): HTMLElement | null;
+};
