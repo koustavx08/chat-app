@@ -13,7 +13,7 @@ const DirectMessage = () => {
   const { conversationId } = useParams<{ conversationId: string }>();
   const { user } = useAuthStore();
   const { messages, loading, fetchMessages, markAsRead } = useMessageStore();
-  const { currentConversation, getConversation, updateTypingStatus } = useConversationStore();
+  const { currentConversation, getConversation } = useConversationStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isTyping, setIsTyping] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -57,7 +57,9 @@ const DirectMessage = () => {
     socket.on('typing', handleTypingEvent);
     
     return () => {
-      socket.off('typing', handleTypingEvent);
+      if (socket) {
+        socket.off('typing', handleTypingEvent);
+      }
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
