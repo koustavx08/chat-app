@@ -25,17 +25,18 @@ connectDB();
 
 // CORS configuration
 const allowedOrigins = process.env.NODE_ENV === 'production'
-  ? [process.env.FRONTEND_URL]
+  ? [process.env.FRONTEND_URL, process.env.FRONTEND_URL?.replace(/\/$/, '')]
   : ['http://localhost:5173', 'http://127.0.0.1:5173'];
 
 const corsOptions = {
   origin: function (origin, callback) {
+    console.log('CORS request from origin:', origin);
     // allow requests with no origin (like mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     } else {
-      return callback(new Error('Not allowed by CORS'));
+      return callback(new Error('Not allowed by CORS: ' + origin));
     }
   },
   credentials: true,
