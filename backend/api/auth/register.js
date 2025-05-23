@@ -16,7 +16,7 @@ app.use(cors({
 app.use(bodyParser.json());
 
 // Register endpoint
-app.post('/auth/register', (req, res) => {
+app.post('/api/auth/register', (req, res) => {
   // Your registration logic here
   res.status(200).json({ message: 'Registration successful' });
 });

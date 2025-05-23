@@ -16,7 +16,7 @@ app.use(cors({
 app.use(bodyParser.json());
 
 // Login endpoint
-app.post('/auth/login', (req, res) => {
+app.post('/api/auth/login', (req, res) => {
   // Your login logic here
   res.status(200).json({ message: 'Login successful' });
 });
