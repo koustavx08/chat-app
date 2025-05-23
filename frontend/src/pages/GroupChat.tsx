@@ -6,8 +6,9 @@ import { useAuthStore } from '../stores/authStore';
 import MessageBubble from '../components/MessageBubble';
 import MessageInput from '../components/MessageInput';
 import { ArrowLeft, Phone, Video, UserPlus, Info, Users } from 'lucide-react';
-import { socket } from '../lib/socket';
+import { getSocket } from '../lib/socket';
 import { motion, AnimatePresence } from 'framer-motion';
+import { SocketEvents } from '../types';
 
 const GroupChat = () => {
   const { groupId } = useParams<{ groupId: string }>();
@@ -32,17 +33,18 @@ const GroupChat = () => {
   }, [messages]);
   
   useEffect(() => {
+    const socket = getSocket();
     if (!socket || !groupId) return;
     
     // Handle typing events
-    const handleTypingEvent = (data: { userId: string; userName: string; conversationId: string; isTyping: boolean }) => {
-      if (data.conversationId === groupId && data.userId !== user?._id) {
+    const handleTypingEvent: SocketEvents['typing'] = (data) => {
+      if (data.conversationId === groupId) {
         setTypingUsers(prev => {
           const updated = new Set(prev);
           if (data.isTyping) {
-            updated.add(data.userName);
+            updated.add(data.userName ?? 'Someone');
           } else {
-            updated.delete(data.userName);
+            updated.delete(data.userName ?? 'Someone');
           }
           return updated;
         });
@@ -54,7 +56,7 @@ const GroupChat = () => {
     return () => {
       socket.off('typing', handleTypingEvent);
     };
-  }, [groupId, user?._id]);
+  }, [groupId]);
   
   if (!currentConversation || !groupId) {
     return (

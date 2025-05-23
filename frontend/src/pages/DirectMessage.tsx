@@ -6,8 +6,9 @@ import { useAuthStore } from '../stores/authStore';
 import MessageBubble from '../components/MessageBubble';
 import MessageInput from '../components/MessageInput';
 import { ArrowLeft, Phone, Video, Info } from 'lucide-react';
-import { socket } from '../lib/socket';
+import { getSocket } from '../lib/socket';
 import { motion, AnimatePresence } from 'framer-motion';
+import { SocketEvents } from '../types';
 
 const DirectMessage = () => {
   const { conversationId } = useParams<{ conversationId: string }>();
@@ -33,11 +34,12 @@ const DirectMessage = () => {
   }, [messages]);
   
   useEffect(() => {
+    const socket = getSocket();
     if (!socket || !conversationId) return;
     
     // Handle typing events
-    const handleTypingEvent = (data: { userId: string; conversationId: string; isTyping: boolean }) => {
-      if (data.conversationId === conversationId && data.userId !== user?._id) {
+    const handleTypingEvent: SocketEvents['typing'] = (data) => {
+      if (data.conversationId === conversationId) {
         setIsTyping(data.isTyping);
         
         // Clear previous timeout
@@ -57,14 +59,12 @@ const DirectMessage = () => {
     socket.on('typing', handleTypingEvent);
     
     return () => {
-      if (socket) {
-        socket.off('typing', handleTypingEvent);
-      }
+      socket.off('typing', handleTypingEvent);
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
     };
-  }, [conversationId, user?._id]);
+  }, [conversationId]);
   
   if (!currentConversation || !conversationId) {
     return (

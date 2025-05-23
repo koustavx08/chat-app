@@ -20,15 +20,15 @@ const ConversationItem = ({ conversation }: ConversationItemProps) => {
     : null;
   
   const displayName = isGroup 
-    ? conversation.name 
-    : otherParticipant?.name || 'Unknown User';
+    ? conversation.name ?? 'Unnamed Group'
+    : otherParticipant?.name ?? 'Unknown User';
   
   const avatarUrl = isGroup 
-    ? `https://ui-avatars.com/api/?name=${encodeURIComponent(conversation.name)}&background=6366f1&color=fff` 
-    : otherParticipant?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(otherParticipant?.name || 'U')}&background=6366f1&color=fff`;
+    ? `https://ui-avatars.com/api/?name=${encodeURIComponent(conversation.name ?? 'G')}&background=6366f1&color=fff` 
+    : otherParticipant?.avatar ?? `https://ui-avatars.com/api/?name=${encodeURIComponent(otherParticipant?.name ?? 'U')}&background=6366f1&color=fff`;
   
   const lastMessage = conversation.lastMessage;
-  const unreadCount = conversation.unreadCount || 0;
+  const unreadCount = conversation.unreadCount ?? 0;
   
   const handleClick = () => {
     setCurrentConversation(conversation);

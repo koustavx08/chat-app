@@ -1,9 +1,9 @@
 import { io, Socket } from 'socket.io-client';
 import { SocketEvents } from '../types';
 
-export let socket: Socket<SocketEvents> | null = null;
+export let socket: Socket | null = null;
 
-export const initializeSocketConnection = (token: string): Socket<SocketEvents> | null => {
+export const initializeSocketConnection = (token: string): Socket | null => {
   if (socket) {
     // If socket already exists and is connected, return
     if (socket.connected) return socket;
@@ -14,7 +14,7 @@ export const initializeSocketConnection = (token: string): Socket<SocketEvents> 
   }
   
   // Create new socket connection
-  socket = io<SocketEvents>({
+  socket = io({
     auth: {
       token
     },
@@ -50,6 +50,6 @@ export const disconnectSocket = (): void => {
   }
 };
 
-export const getSocket = (): Socket<SocketEvents> | null => {
+export const getSocket = (): Socket | null => {
   return socket;
 };

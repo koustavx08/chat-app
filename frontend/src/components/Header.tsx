@@ -5,6 +5,7 @@ import { Menu, Bell, UserCircle, Settings, LogOut, X, MessageCircle } from 'luci
 import { useConversationStore } from '../stores/conversationStore';
 import DarkModeToggle from './DarkModeToggle';
 import DropdownPortal from './DropdownPortal';
+import { HTMLElementWithClosest } from '../types';
 
 const Header = () => {
   const { user, logout } = useAuthStore();
@@ -15,10 +16,12 @@ const Header = () => {
   // Close dropdowns when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (notificationsOpen && !event.target.closest('.notifications-dropdown')) {
+      const target = event.target as HTMLElementWithClosest;
+      
+      if (notificationsOpen && !target.closest('.notifications-dropdown')) {
         setNotificationsOpen(false);
       }
-      if (profileMenuOpen && !event.target.closest('.profile-menu')) {
+      if (profileMenuOpen && !target.closest('.profile-menu')) {
         setProfileMenuOpen(false);
       }
     }

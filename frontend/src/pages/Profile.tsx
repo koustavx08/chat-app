@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { useAuthStore } from '../stores/authStore';
 import { Camera, CheckCircle, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { User } from '../types';
 
 interface ProfileFormData {
   name: string;
@@ -22,9 +23,9 @@ const Profile = () => {
     formState: { errors, isDirty } 
   } = useForm<ProfileFormData>({
     defaultValues: {
-      name: user?.name || '',
-      email: user?.email || '',
-      bio: user?.bio || ''
+      name: user?.name ?? '',
+      email: user?.email ?? '',
+      bio: user?.bio ?? ''
     }
   });
   
@@ -37,7 +38,7 @@ const Profile = () => {
   };
   
   const handleAvatarUpload = async () => {
-    if (!avatar) return;
+    if (!avatar || !user?._id) return;
     
     setUploadingAvatar(true);
     
@@ -61,9 +62,7 @@ const Profile = () => {
       
       toast.success('Avatar updated successfully');
       // Update user state with new avatar URL
-      if (user) {
-        updateProfile({ ...user, avatar: data.avatarUrl });
-      }
+      updateProfile({ ...user, avatar: data.avatarUrl });
       
       setAvatar(null);
     } catch (error) {
@@ -74,13 +73,19 @@ const Profile = () => {
   };
   
   const onSubmit = async (data: ProfileFormData) => {
+    if (!user?._id) {
+      toast.error('User ID is missing');
+      return;
+    }
+
     try {
-      await updateProfile({
+      const updatedUser: User = {
         ...user,
         name: data.name,
-        bio: data.bio || ''
-      });
+        bio: data.bio ?? ''
+      };
       
+      await updateProfile(updatedUser);
       toast.success('Profile updated successfully');
     } catch (error) {
       toast.error('Failed to update profile');
