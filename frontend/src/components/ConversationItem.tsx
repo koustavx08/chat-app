@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { formatDistanceToNow } from 'date-fns';
 import { Check, CheckCheck } from 'lucide-react';

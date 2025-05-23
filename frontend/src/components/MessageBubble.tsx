@@ -126,19 +126,6 @@ const MessageBubble = ({
     }
   };
   
-  const renderFileIcon = () => {
-    switch (message.type) {
-      case 'image':
-        return <Image className="h-4 w-4" />;
-      case 'video':
-        return <Film className="h-4 w-4" />;
-      case 'document':
-        return <FileText className="h-4 w-4" />;
-      default:
-        return null;
-    }
-  };
-  
   const renderMessageStatus = () => {
     if (!isSender) return null;
     

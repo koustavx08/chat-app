@@ -20,8 +20,8 @@ const Sidebar = () => {
   // Filter conversations based on search term
   const filteredConversations = conversations.filter(conversation => {
     const conversationName = conversation.isGroup 
-      ? conversation.name 
-      : conversation.participants.find(p => p._id !== user?._id)?.name || '';
+      ? conversation.name ?? 'Unnamed Group'
+      : conversation.participants.find(p => p._id !== user?._id)?.name ?? 'Unknown User';
     
     return conversationName.toLowerCase().includes(searchTerm.toLowerCase());
   });

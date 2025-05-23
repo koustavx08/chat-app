@@ -39,18 +39,34 @@ export interface Conversation {
   online?: boolean;
 }
 
-// Add type for socket events
 export interface SocketEvents {
-  'typing': (data: { conversationId: string; isTyping: boolean }) => void;
-  'message': (message: Message) => void;
-  'message:delivered': (data: { messageId: string; conversationId: string }) => void;
-  'message:read': (data: { messageId: string; conversationId: string }) => void;
-  'user:online': (userId: string) => void;
-  'user:offline': (userId: string) => void;
+  typing: {
+    conversationId: string;
+    userName?: string;
+    isTyping: boolean;
+  };
+  message: {
+    conversationId: string;
+    message: Message;
+  };
+  'message:delivered': {
+    messageId: string;
+    conversationId: string;
+  };
+  'message:read': {
+    messageId: string;
+    conversationId: string;
+  };
+  'user:online': {
+    userId: string;
+  };
+  'user:offline': {
+    userId: string;
+  };
 }
 
-// Add type for event handlers
 export type EventHandler = (event: Event) => void;
-export type HTMLElementWithClosest = HTMLElement & {
+
+export interface HTMLElementWithClosest extends HTMLElement {
   closest(selector: string): HTMLElement | null;
-};
+}

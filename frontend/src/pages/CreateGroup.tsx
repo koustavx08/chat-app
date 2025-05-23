@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useConversationStore } from '../stores/conversationStore';
-import { Users, Search, X, Plus, User, Check } from 'lucide-react';
+import { Users, Search, X, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface CreateGroupFormData {

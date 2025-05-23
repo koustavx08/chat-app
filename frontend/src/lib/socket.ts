@@ -1,55 +1,41 @@
 import { io, Socket } from 'socket.io-client';
-import { SocketEvents } from '../types';
+import { getAuthToken } from './auth';
 
-export let socket: Socket | null = null;
+let socket: Socket | null = null;
 
-export const initializeSocketConnection = (token: string): Socket | null => {
-  if (socket) {
-    // If socket already exists and is connected, return
-    if (socket.connected) return socket;
-    
-    // If socket exists but is disconnected, reconnect it
-    socket.connect();
-    return socket;
+export const initializeSocketConnection = () => {
+  if (!socket) {
+    const token = getAuthToken();
+    if (!token) return null;
+
+    socket = io(import.meta.env.VITE_API_URL || 'http://localhost:3000', {
+      auth: {
+        token
+      }
+    });
+
+    socket.on('connect', () => {
+      console.log('Socket connected');
+    });
+
+    socket.on('connect_error', (error) => {
+      console.error('Socket connection error:', error);
+    });
   }
-  
-  // Create new socket connection
-  socket = io({
-    auth: {
-      token
-    },
-    transports: ['websocket', 'polling']
-  });
-  
-  // Connection event handlers
-  socket.on('connect', () => {
-    console.log('Socket connected');
-  });
-  
-  socket.on('disconnect', () => {
-    console.log('Socket disconnected');
-  });
-  
-  socket.on('connect_error', (err) => {
-    console.error('Socket connection error:', err.message);
-    
-    // If error is due to authentication, clear token and redirect to login
-    if (err.message === 'Authentication error') {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
-    }
-  });
-  
+
   return socket;
 };
 
-export const disconnectSocket = (): void => {
+export const getSocket = () => {
+  if (!socket) {
+    return initializeSocketConnection();
+  }
+  return socket;
+};
+
+export const disconnectSocket = () => {
   if (socket) {
     socket.disconnect();
     socket = null;
   }
-};
-
-export const getSocket = (): Socket | null => {
-  return socket;
 };

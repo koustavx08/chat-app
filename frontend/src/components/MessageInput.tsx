@@ -1,8 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { Paperclip, Send, Smile, X, Image, FileText, Film, Plus } from 'lucide-react';
+import { Paperclip, Send, Smile, X, Image, FileText, Film } from 'lucide-react';
 import { useMessageStore } from '../stores/messageStore';
-import { socket } from '../lib/socket';
 import { useAuthStore } from '../stores/authStore';
 import { useConversationStore } from '../stores/conversationStore';
 import { encryptMessage } from '../lib/encryption';
@@ -15,7 +13,7 @@ interface MessageInputProps {
   isGroup?: boolean;
 }
 
-const MessageInput = ({ conversationId, isGroup = false }: MessageInputProps) => {
+const MessageInput = ({ conversationId, isGroup }: MessageInputProps) => {
   const { user } = useAuthStore();
   const { currentConversation } = useConversationStore();
   const { sendMessage, sendTypingStatus } = useMessageStore();

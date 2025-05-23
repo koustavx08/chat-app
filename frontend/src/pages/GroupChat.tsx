@@ -13,18 +13,19 @@ import { SocketEvents } from '../types';
 const GroupChat = () => {
   const { groupId } = useParams<{ groupId: string }>();
   const { user } = useAuthStore();
-  const { messages, loading, fetchMessages, markAsRead } = useMessageStore();
+  const { messages, loading, error, sendMessage: sendMessageAction, markAsRead, fetchMessages } = useMessageStore();
   const { currentConversation, getConversation } = useConversationStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
+  const [isTyping, setIsTyping] = useState(false);
+  const typingTimeoutRef = useRef<NodeJS.Timeout>();
   
   useEffect(() => {
     if (groupId) {
-      getConversation(groupId);
       fetchMessages(groupId);
-      markAsRead(groupId);
+      getConversation(groupId);
     }
-  }, [groupId, getConversation, fetchMessages, markAsRead]);
+  }, [groupId, fetchMessages, getConversation]);
   
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -34,27 +35,41 @@ const GroupChat = () => {
   
   useEffect(() => {
     const socket = getSocket();
-    if (!socket || !groupId) return;
+    if (!socket) return;
     
-    // Handle typing events
-    const handleTypingEvent: SocketEvents['typing'] = (data) => {
+    const handleTyping = (data: SocketEvents['typing']) => {
       if (data.conversationId === groupId) {
+        const userName = data.userName ?? 'Someone';
         setTypingUsers(prev => {
-          const updated = new Set(prev);
-          if (data.isTyping) {
-            updated.add(data.userName ?? 'Someone');
-          } else {
-            updated.delete(data.userName ?? 'Someone');
-          }
-          return updated;
+          const newSet = new Set(prev);
+          newSet.add(userName);
+          return newSet;
         });
+
+        // Clear previous timeout
+        if (typingTimeoutRef.current) {
+          clearTimeout(typingTimeoutRef.current);
+        }
+
+        // Set new timeout
+        typingTimeoutRef.current = setTimeout(() => {
+          setTypingUsers(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(userName);
+            return newSet;
+          });
+        }, 3000);
       }
     };
     
-    socket.on('typing', handleTypingEvent);
+    socket.on('typing', handleTyping);
     
     return () => {
-      socket.off('typing', handleTypingEvent);
+      socket.off('typing', handleTyping);
+      // Clear all timeouts
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
     };
   }, [groupId]);
   

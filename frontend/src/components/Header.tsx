@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { Menu, Bell, UserCircle, Settings, LogOut, X, MessageCircle } from 'lucide-react';
@@ -12,24 +12,26 @@ const Header = () => {
   const { toggleSidebar } = useConversationStore();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const notificationsRef = useRef<HTMLDivElement>(null);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
+    const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElementWithClosest;
-      
-      if (notificationsOpen && !target.closest('.notifications-dropdown')) {
+      if (notificationsRef.current && !target.closest('#notifications-menu')) {
         setNotificationsOpen(false);
       }
-      if (profileMenuOpen && !target.closest('.profile-menu')) {
+      if (profileMenuRef.current && !target.closest('#profile-menu')) {
         setProfileMenuOpen(false);
       }
-    }
+    };
+
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [notificationsOpen, profileMenuOpen]);
+  }, []);
 
   // Ensure only one panel is open at a time
   const handleNotifications = () => {

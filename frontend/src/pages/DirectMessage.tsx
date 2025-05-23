@@ -12,12 +12,13 @@ import { SocketEvents } from '../types';
 
 const DirectMessage = () => {
   const { conversationId } = useParams<{ conversationId: string }>();
+  const { messages, loading, error, sendMessage: sendMessageAction, markAsRead, fetchMessages } = useMessageStore();
   const { user } = useAuthStore();
-  const { messages, loading, fetchMessages, markAsRead } = useMessageStore();
   const { currentConversation, getConversation } = useConversationStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
   const [isTyping, setIsTyping] = useState(false);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout>();
   
   useEffect(() => {
     if (conversationId) {
@@ -35,31 +36,28 @@ const DirectMessage = () => {
   
   useEffect(() => {
     const socket = getSocket();
-    if (!socket || !conversationId) return;
+    if (!socket) return;
     
-    // Handle typing events
-    const handleTypingEvent: SocketEvents['typing'] = (data) => {
+    const handleTyping = (data: SocketEvents['typing']) => {
       if (data.conversationId === conversationId) {
-        setIsTyping(data.isTyping);
+        setIsTyping(true);
         
         // Clear previous timeout
         if (typingTimeoutRef.current) {
           clearTimeout(typingTimeoutRef.current);
         }
         
-        // Auto-clear typing indicator after 3 seconds in case we miss the stop typing event
-        if (data.isTyping) {
-          typingTimeoutRef.current = setTimeout(() => {
-            setIsTyping(false);
-          }, 3000);
-        }
+        // Set new timeout
+        typingTimeoutRef.current = setTimeout(() => {
+          setIsTyping(false);
+        }, 3000);
       }
     };
     
-    socket.on('typing', handleTypingEvent);
+    socket.on('typing', handleTyping);
     
     return () => {
-      socket.off('typing', handleTypingEvent);
+      socket.off('typing', handleTyping);
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
