@@ -96,34 +96,78 @@ const createConversation = async (req, res) => {
         error: 'Please provide a user ID'
       });
     }
+
+    // Convert IDs to strings and sort them
+    const currentUserId = req.user.id.toString();
+    const otherUserId = userId.toString();
     
-    // Check if conversation already exists
+    // Check if trying to create conversation with self
+    if (currentUserId === otherUserId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Cannot create conversation with yourself'
+      });
+    }
+    
+    // Sort participant IDs to ensure consistent ordering
+    const participants = [currentUserId, otherUserId].sort();
+    
+    // Check if conversation already exists using $all to match unordered arrays
     const existingConversation = await Conversation.findOne({
-      participants: { $all: [req.user.id, userId] },
+      participants: { $all: participants },
       isGroup: false
     })
       .populate('participants', 'name email avatar isOnline lastSeen')
       .populate('lastMessage');
     
     if (existingConversation) {
+      console.log(`Found existing conversation between users ${participants[0]} and ${participants[1]}`);
       return res.status(200).json(existingConversation);
     }
     
-    // Create new conversation
+    console.log(`Creating new conversation between users ${participants[0]} and ${participants[1]}`);
+    
+    // Create new conversation with ObjectIds
     const newConversation = await Conversation.create({
-      participants: [req.user.id, userId],
+      participants: participants.map(id => new mongoose.Types.ObjectId(id)),
       isGroup: false,
       unreadCounts: [
-        { user: req.user.id, count: 0 },
-        { user: userId, count: 0 }
+        { user: new mongoose.Types.ObjectId(currentUserId), count: 0 },
+        { user: new mongoose.Types.ObjectId(otherUserId), count: 0 }
       ]
     });
     
     // Populate the conversation details
     await newConversation.populate('participants', 'name email avatar isOnline lastSeen');
     
+    console.log(`Successfully created conversation ${newConversation._id}`);
     res.status(201).json(newConversation);
   } catch (error) {
+    console.error('Error creating conversation:', error);
+    
+    // Handle duplicate key error specifically
+    if (error.code === 11000) {
+      console.log('Duplicate conversation detected, attempting to find existing conversation');
+      
+      // Try to find the existing conversation
+      const participants = [req.user.id.toString(), req.body.userId.toString()].sort();
+      const existingConversation = await Conversation.findOne({
+        participants: { $all: participants },
+        isGroup: false
+      })
+        .populate('participants', 'name email avatar isOnline lastSeen')
+        .populate('lastMessage');
+      
+      if (existingConversation) {
+        return res.status(200).json(existingConversation);
+      }
+      
+      return res.status(409).json({
+        success: false,
+        error: 'Conversation already exists'
+      });
+    }
+    
     res.status(500).json({
       success: false,
       error: error.message
@@ -155,13 +199,13 @@ const createGroupConversation = async (req, res) => {
       });
     }
     
-    // Add current user to participants if not already included
-    if (!participants.includes(req.user.id.toString())) {
-      participants.push(req.user.id.toString());
-    }
+    // Add current user to participants if not already included and sort IDs
+    const uniqueParticipants = [...new Set([...participants, req.user.id.toString()])]
+      .map(id => id.toString())
+      .sort();
     
     // Initialize unreadCounts array
-    const unreadCounts = participants.map(userId => ({
+    const unreadCounts = uniqueParticipants.map(userId => ({
       user: userId,
       count: 0
     }));
@@ -170,7 +214,7 @@ const createGroupConversation = async (req, res) => {
     const newGroup = await Conversation.create({
       name,
       description,
-      participants,
+      participants: uniqueParticipants,
       isGroup: true,
       admin: req.user.id,
       unreadCounts
@@ -181,6 +225,7 @@ const createGroupConversation = async (req, res) => {
     
     res.status(201).json(newGroup);
   } catch (error) {
+    console.error('Error creating group conversation:', error);
     res.status(500).json({
       success: false,
       error: error.message

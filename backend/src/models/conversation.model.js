@@ -56,10 +56,25 @@ const ConversationSchema = new mongoose.Schema(
   }
 );
 
-// Make compound index to ensure unique conversations between two users
+// Add a compound index for participants array elements
 ConversationSchema.index(
-  { participants: 1, isGroup: 1 },
-  { unique: true, partialFilterExpression: { isGroup: false } }
+  { 'participants': 1 },
+  { 
+    background: true 
+  }
+);
+
+// Add a unique compound index for direct conversations
+// This ensures uniqueness regardless of participant order
+ConversationSchema.index(
+  { 
+    'participants': 1,
+    'isGroup': 1
+  },
+  { 
+    unique: true,
+    partialFilterExpression: { isGroup: false }
+  }
 );
 
 // Add text search index for conversation name and description

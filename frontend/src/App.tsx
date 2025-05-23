@@ -11,6 +11,7 @@ import Profile from './pages/Profile';
 import DirectMessage from './pages/DirectMessage';
 import GroupChat from './pages/GroupChat';
 import CreateGroup from './pages/CreateGroup';
+import NewConversation from './pages/NewConversation';
 import { initializeSocketConnection } from './lib/socket';
 
 function App() {
@@ -48,6 +49,7 @@ function App() {
         <Route path="/chat/:conversationId" element={<DirectMessage />} />
         <Route path="/group/:groupId" element={<GroupChat />} />
         <Route path="/create-group" element={<CreateGroup />} />
+        <Route path="/new-conversation" element={<NewConversation />} />
         <Route path="/profile" element={<Profile />} />
       </Route>
 

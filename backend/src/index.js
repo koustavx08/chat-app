@@ -14,6 +14,7 @@ const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
 const conversationRoutes = require('./routes/conversation.routes');
 const messageRoutes = require('./routes/message.routes');
+const devRoutes = require('./routes/dev.routes');
 
 // Initialize Express app
 const app = express();
@@ -40,6 +41,12 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/conversations', conversationRoutes);
 app.use('/api/messages', messageRoutes);
+
+// Development routes - only available in development mode
+if (process.env.NODE_ENV === 'development') {
+  app.use('/api/dev', devRoutes);
+  logger.info('Development routes enabled');
+}
 
 // Initialize Socket.io
 initSocketServer(server);

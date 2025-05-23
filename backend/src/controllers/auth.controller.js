@@ -1,4 +1,5 @@
 const User = require('../models/user.model');
+const { validationResult } = require('express-validator');
 
 /**
  * @desc    Register a new user
@@ -7,31 +8,83 @@ const User = require('../models/user.model');
  */
 const register = async (req, res) => {
   try {
+    // Log request body in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Registration request body:', req.body);
+    }
+
     const { name, email, password } = req.body;
-    
-    // Check if user already exists
-    const userExists = await User.findOne({ email });
-    
-    if (userExists) {
+
+    // Validate required fields
+    if (!name || !email || !password) {
       return res.status(400).json({
         success: false,
-        error: 'User already exists'
+        error: 'Please provide all required fields: name, email, and password'
       });
     }
-    
+
+    // Validate email format
+    const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Please provide a valid email address'
+      });
+    }
+
+    // Validate password length
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        error: 'Password must be at least 6 characters long'
+      });
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(409).json({
+        success: false,
+        error: 'Email is already registered'
+      });
+    }
+
     // Create user
     const user = await User.create({
       name,
       email,
       password
     });
-    
+
     // Send token response
     sendTokenResponse(user, 201, res);
+
   } catch (error) {
+    // Log error in development
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Registration error:', error);
+    }
+
+    // Handle specific error types
+    if (error.code === 11000 && error.keyPattern && error.keyPattern.email) {
+      return res.status(409).json({
+        success: false,
+        error: 'Email is already registered'
+      });
+    }
+
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map(val => val.message);
+      return res.status(400).json({
+        success: false,
+        error: messages.join(', ')
+      });
+    }
+
+    // Handle unexpected errors
     res.status(500).json({
       success: false,
-      error: error.message
+      error: 'An unexpected error occurred during registration'
     });
   }
 };
