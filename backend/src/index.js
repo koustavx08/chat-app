@@ -24,9 +24,11 @@ const server = http.createServer(app);
 connectDB();
 
 // CORS configuration
-const allowedOrigins = process.env.NODE_ENV === 'production'
-  ? [process.env.FRONTEND_URL, process.env.FRONTEND_URL?.replace(/\/$/, '')]
-  : ['http://localhost:5173', 'http://127.0.0.1:5173'];
+const allowedOrigins = [
+  'https://chat-app-x08.vercel.app',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173'
+];
 
 const corsOptions = {
   origin: function (origin, callback) {
