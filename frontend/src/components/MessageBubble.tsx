@@ -9,14 +9,13 @@ import { decryptMessage } from '../lib/encryption';
 interface MessageBubbleProps {
   message: MessageType;
   previousMessage?: MessageType;
-  nextMessage?: MessageType;
+
   showAvatar?: boolean;
 }
 
 const MessageBubble = ({ 
   message, 
   previousMessage, 
-  nextMessage,
   showAvatar = true
 }: MessageBubbleProps) => {
   const { user } = useAuthStore();
