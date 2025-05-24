@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { formatDistanceToNow, format } from 'date-fns';
+import { format } from 'date-fns';
 import { Check, CheckCheck, Download, FileText, MoreVertical, Trash2, Reply, Heart, Smile } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Message as MessageType } from '../types';
@@ -25,7 +25,6 @@ const MessageBubble = ({
   
   const isSender = message.sender._id === user?._id;
   const isConsecutive = previousMessage?.sender._id === message.sender._id;
-  const isFollowedBySame = nextMessage?.sender._id === message.sender._id;
   
   // Decrypt message content
   const decryptedContent = message.encryptedContent 
