@@ -65,7 +65,7 @@ if (process.env.NODE_ENV === 'development') {
 // Static uploads directory
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// API routes
+// API routes (must use /api prefix)
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/conversations', conversationRoutes);
@@ -82,9 +82,14 @@ if (process.env.NODE_ENV === 'development') {
   logger.info('Development routes enabled');
 }
 
-// Catch-all 404 handler for undefined API routes
+// Catch-all 404 handler for undefined API routes (must come after all /api routes)
 app.use('/api/*', (req, res) => {
   res.status(404).json({ success: false, error: 'API route not found' });
+});
+
+// Catch-all 404 for non-API routes (optional, for clarity)
+app.use('*', (req, res) => {
+  res.status(404).json({ success: false, error: 'Route not found' });
 });
 
 // Initialize Socket.io
