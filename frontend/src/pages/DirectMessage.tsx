@@ -82,12 +82,12 @@ const DirectMessage = () => {
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col bg-gradient-to-br from-gray-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-950 dark:to-indigo-950 font-inter">
       {/* Chat header */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="p-4 glass-panel rounded-none md:rounded-t-xl flex items-center gap-3"
+        className="p-4 glass-panel rounded-none md:rounded-t-xl flex items-center gap-3 shadow-md"
       >
         <button className="md:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition-colors duration-200">
           <ArrowLeft className="h-5 w-5" />
@@ -131,10 +131,10 @@ const DirectMessage = () => {
       </motion.div>
       
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-2">
         {loading ? (
           <div className="flex justify-center py-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-600 dark:border-indigo-400"></div>
+            <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-indigo-600 dark:border-indigo-400"></div>
           </div>
         ) : messages.length === 0 ? (
           <motion.div 
@@ -151,7 +151,7 @@ const DirectMessage = () => {
             </div>
           </motion.div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-3">
             <AnimatePresence initial={false}>
               {messages.map((message, index) => (
                 <motion.div
@@ -178,7 +178,7 @@ const DirectMessage = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glass-panel rounded-none md:rounded-b-xl p-4"
+        className="glass-panel rounded-none md:rounded-b-xl p-4 shadow-md"
       >
         <MessageInput conversationId={conversationId} />
       </motion.div>

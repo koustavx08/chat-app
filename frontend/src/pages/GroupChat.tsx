@@ -6,7 +6,7 @@ import MessageBubble from '../components/MessageBubble';
 import MessageInput from '../components/MessageInput';
 import { ArrowLeft, Video, UserPlus, Info, Users } from 'lucide-react';
 import { getSocket } from '../lib/socket';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { SocketEvents } from '../types';
 
 const GroupChat = () => {
@@ -95,9 +95,9 @@ const GroupChat = () => {
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col bg-gradient-to-br from-gray-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-950 dark:to-indigo-950 font-inter">
       {/* Chat header */}
-      <div className="px-4 py-3 bg-white border-b border-gray-200 flex items-center">
+      <div className="px-4 py-3 glass-panel rounded-none md:rounded-t-xl flex items-center shadow-md">
         <button className="md:hidden text-gray-500 mr-2">
           <ArrowLeft className="h-5 w-5" />
         </button>
@@ -129,49 +129,52 @@ const GroupChat = () => {
           </button>
         </div>
       </div>
-      
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
+      <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-2">
         {loading ? (
           <div className="flex justify-center py-4">
             <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary-600"></div>
           </div>
         ) : messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center">
-            <div className="text-center">
+            <div className="glass-panel p-8 text-center">
               <p className="text-gray-500 mb-2">No messages yet</p>
               <p className="text-sm text-gray-400">Start the conversation!</p>
             </div>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-3">
             <AnimatePresence initial={false}>
               {messages.map((message, index) => (
-                <MessageBubble
+                <motion.div
                   key={message._id}
-                  message={{
-                    ...message,
-                    conversationIsGroup: true
-                  }}
-                  previousMessage={index > 0 ? messages[index - 1] : undefined}
-                  nextMessage={index < messages.length - 1 ? messages[index + 1] : undefined}
-                />
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <MessageBubble
+                    message={{ ...message, conversationIsGroup: true }}
+                    previousMessage={index > 0 ? messages[index - 1] : undefined}
+                    nextMessage={index < messages.length - 1 ? messages[index + 1] : undefined}
+                  />
+                </motion.div>
               ))}
             </AnimatePresence>
             <div ref={messagesEndRef} />
           </div>
         )}
       </div>
-      
       {/* Typing indicator */}
       {typingUsers.size > 0 && (
-        <div className="px-4 py-2 bg-white border-t border-gray-200">
+        <div className="px-4 py-2 bg-white/80 dark:bg-gray-900/80 border-t border-gray-200 dark:border-gray-700">
           <p className="text-sm text-primary-600 animate-pulse">{typingMessage()}</p>
         </div>
       )}
-      
       {/* Message input */}
-      <MessageInput conversationId={groupId} />
+      <div className="glass-panel rounded-none md:rounded-b-xl p-4 shadow-md">
+        <MessageInput conversationId={groupId} />
+      </div>
     </div>
   );
 };
