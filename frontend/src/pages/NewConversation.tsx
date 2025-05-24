@@ -11,12 +11,9 @@ const NewConversation = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
-  const { createGroup } = useConversationStore(); // Changed createConversation to createGroup
+  const { createGroup } = useConversationStore();
   const { user: currentUser } = useAuthStore();
   const navigate = useNavigate();
-  const [isSearching, setIsSearching] = useState(false);
-  const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
-  const [searchResults, setSearchResults] = useState<User[]>([]);
 
   useEffect(() => {
     const searchUsers = async () => {
@@ -25,7 +22,7 @@ const NewConversation = () => {
         return;
       }
 
-      setIsSearching(true);
+      setLoading(true);
       
       try {
         const response = await api.get(`/users/search?q=${encodeURIComponent(searchTerm)}`);
@@ -35,7 +32,7 @@ const NewConversation = () => {
       } catch (error) {
         console.error('Error searching users:', error);
       } finally {
-        setIsSearching(false);
+        setLoading(false);
       }
     };
 
