@@ -17,6 +17,6 @@ export const register = async (name: string, email: string, password: string): P
 };
 
 export const updateProfile = async (data: Partial<User>): Promise<User> => {
-  const response = await api.put('/users/profile', data);
+  const response = await api.put('/api/users/profile', data);
   return response.data;
 };
