@@ -14,6 +14,9 @@ const NewConversation = () => {
   const { createGroup } = useConversationStore(); // Changed createConversation to createGroup
   const { user: currentUser } = useAuthStore();
   const navigate = useNavigate();
+  const [isSearching, setIsSearching] = useState(false);
+  const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
+  const [searchResults, setSearchResults] = useState<User[]>([]);
 
   useEffect(() => {
     const searchUsers = async () => {
@@ -22,7 +25,8 @@ const NewConversation = () => {
         return;
       }
 
-      setLoading(true);
+      setIsSearching(true);
+      
       try {
         const response = await api.get(`/users/search?q=${encodeURIComponent(searchTerm)}`);
         // Filter out the current user from results
@@ -31,13 +35,13 @@ const NewConversation = () => {
       } catch (error) {
         console.error('Error searching users:', error);
       } finally {
-        setLoading(false);
+        setIsSearching(false);
       }
     };
 
     const debounceTimeout = setTimeout(searchUsers, 300);
     return () => clearTimeout(debounceTimeout);
-  }, [searchTerm, currentUser?._id]);
+  }, [searchTerm, currentUser]);
 
   const handleStartConversation = async (userId: string) => {
     try {
