@@ -156,7 +156,6 @@ const GroupChat = () => {
                   <MessageBubble
                     message={{ ...message, conversationIsGroup: true }}
                     previousMessage={index > 0 ? messages[index - 1] : undefined}
-                    nextMessage={index < messages.length - 1 ? messages[index + 1] : undefined}
                   />
                 </motion.div>
               ))}

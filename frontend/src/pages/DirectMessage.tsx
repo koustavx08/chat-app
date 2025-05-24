@@ -164,7 +164,6 @@ const DirectMessage = () => {
                   <MessageBubble
                     message={message}
                     previousMessage={index > 0 ? messages[index - 1] : undefined}
-                    nextMessage={index < messages.length - 1 ? messages[index + 1] : undefined}
                   />
                 </motion.div>
               ))}
