@@ -65,6 +65,9 @@ if (process.env.NODE_ENV === 'development') {
 // Static uploads directory
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
+// Add a direct /users/search route for compatibility with frontend requests not using /api prefix
+app.use('/users', userRoutes);
+
 // API routes (must use /api prefix)
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
