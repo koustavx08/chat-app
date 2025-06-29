@@ -137,8 +137,10 @@ const initSocketServer = (server) => {
     socket.on('disconnect', async () => {
       logger.info(`Socket disconnected: ${socket.id}, User: ${socket.userId}`);
       
-      // Update user status to offline
-      handleUserOffline(socket.userId);
+      // Only update user status if userId exists
+      if (socket.userId) {
+        handleUserOffline(socket.userId);
+      }
     });
   });
   
@@ -236,8 +238,8 @@ const sendOfflineNotifications = async (conversationId, message, senderId) => {
       
       // Increment unread count for this conversation and user
       await Conversation.updateOne(
-        { _id: conversationId, 'participants.user': recipient._id },
-        { $inc: { 'participants.$.unreadCount': 1 } }
+        { _id: conversationId, 'unreadCounts.user': recipient._id },
+        { $inc: { 'unreadCounts.$.count': 1 } }
       );
     }
   } catch (error) {

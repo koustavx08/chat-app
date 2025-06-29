@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { Message } from '../types';
 import { getMessages, sendMessage as sendMessageApi, markAsRead as markAsReadApi } from '../api/messages';
+import { getSocket } from '../lib/socket';
 
 interface MessageState {
   messages: Message[];
@@ -50,8 +51,14 @@ export const useMessageStore = create<MessageState>((set) => ({
     }
   },
   sendTypingStatus: (conversationId, isTyping) => {
-    // Implementation for sendTypingStatus - this will likely involve socket communication
-    // For now, it's a placeholder
-    console.log(`Typing status for ${conversationId}: ${isTyping}`);
+    const socket = getSocket();
+    if (socket && socket.connected) {
+      socket.emit('typing', {
+        conversationId,
+        isTyping
+      });
+    } else {
+      console.warn('Socket not connected, cannot send typing status');
+    }
   }
 }));

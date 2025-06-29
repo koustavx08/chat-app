@@ -18,7 +18,7 @@ First off, thank you for considering contributing to ChatApp! 🎉 It's people l
 
 ## 📜 Code of Conduct
 
-This project and everyone participating in it is governed by our Code of Conduct. By participating, you are expected to uphold this code. Please report unacceptable behavior to [koustav.singh@example.com](mailto:koustav.singh@example.com).
+This project and everyone participating in it is governed by our Code of Conduct. By participating, you are expected to uphold this code. Please report unacceptable behavior to [koustavsinghcollege@gmail.com](mailto:koustavsinghcollege@gmail.com).
 
 ### Our Standards
 
@@ -44,7 +44,7 @@ This project and everyone participating in it is governed by our Code of Conduct
 1. **Fork the repository** on GitHub
 2. **Clone your fork** locally:
    ```bash
-   git clone https://github.com/your-username/chat-app.git
+   git clone https://github.com/koustavx08/chat-app.git
    cd chat-app
    ```
 3. **Add upstream remote**:
@@ -376,7 +376,7 @@ Special recognition for contributors who:
 
 - **GitHub Discussions** for questions and ideas
 - **Discord Server** for real-time chat (coming soon)
-- **Email** [koustav.singh@example.com](mailto:koustav.singh@example.com)
+- **Email** [koustavsinghcollege@gmail.com](mailto:koustavsinghcollege@gmail.com)
 
 ### Stay Updated
 

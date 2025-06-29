@@ -2,6 +2,7 @@ const Message = require('../models/message.model');
 const Conversation = require('../models/conversation.model');
 const { getIO } = require('../socket');
 const path = require('path');
+const fs = require('fs');
 
 /**
  * @desc    Get messages for a conversation
@@ -268,7 +269,7 @@ const deleteMessage = async (req, res) => {
       }
     }
     
-    await message.remove();
+    await Message.findByIdAndDelete(message._id);
     
     // If this was the last message, update conversation's lastMessage
     const conversation = await Conversation.findById(message.conversationId);

@@ -40,6 +40,9 @@ const MessageInput = ({ conversationId }: MessageInputProps) => {
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
+      // Clean up any pending operations
+      setIsUploading(false);
+      setSelectedFiles([]);
     };
   }, []);
   
@@ -52,16 +55,37 @@ const MessageInput = ({ conversationId }: MessageInputProps) => {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files && files.length > 0) {
-      const fileArray = Array.from(files);
+      const fileArray = Array.from(files) as File[];
+      
+      // Validate file sizes (max 10MB per file)
+      const maxFileSize = 10 * 1024 * 1024; // 10MB
+      const oversizedFiles = fileArray.filter(file => file.size > maxFileSize);
+      
+      if (oversizedFiles.length > 0) {
+        console.error('Some files are too large. Maximum file size is 10MB.');
+        // TODO: Show user-friendly error message
+        return;
+      }
+      
+      // Validate file count (max 10 files at once)
+      if (selectedFiles.length + fileArray.length > 10) {
+        console.error('Cannot upload more than 10 files at once.');
+        // TODO: Show user-friendly error message
+        return;
+      }
+      
       setSelectedFiles(prev => [...prev, ...fileArray]);
     }
+    
+    // Reset input value to allow selecting the same file again
+    event.target.value = '';
   };
   
   const removeFile = (index: number) => {
     setSelectedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleEmojiSelect = (emoji: any) => {
+  const handleEmojiSelect = (emoji: { native: string }) => {
     setMessage(prev => prev + emoji.native);
     setShowEmojiPicker(false);
     if (inputRef.current) {
@@ -70,7 +94,7 @@ const MessageInput = ({ conversationId }: MessageInputProps) => {
   };
   
   const handleSendMessage = async () => {
-    if ((!message && selectedFiles.length === 0) || !user) return;
+    if ((!message.trim() && selectedFiles.length === 0) || !user || isUploading) return;
     
     try {
       if (selectedFiles.length > 0) {
@@ -136,6 +160,22 @@ const MessageInput = ({ conversationId }: MessageInputProps) => {
       }
     } catch (error) {
       console.error('Error sending message:', error);
+      
+      // More specific error handling
+      if (error instanceof Error) {
+        if (error.message.includes('Failed to upload files')) {
+          console.error('File upload failed. Please check your internet connection and try again.');
+        } else if (error.message.includes('Network')) {
+          console.error('Network error. Please check your connection.');
+        } else {
+          console.error('Failed to send message. Please try again.');
+        }
+      } else {
+        console.error('An unexpected error occurred while sending the message.');
+      }
+      
+      // TODO: Add user-facing error notification here
+      // You might want to use a toast notification system
     } finally {
       setIsUploading(false);
     }
@@ -218,6 +258,7 @@ const MessageInput = ({ conversationId }: MessageInputProps) => {
             type="button"
             onClick={() => setShowAttachmentOptions(!showAttachmentOptions)}
             className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors duration-200"
+            aria-label={showAttachmentOptions ? "Close attachment options" : "Open attachment options"}
           >
             {showAttachmentOptions ? <X className="h-5 w-5" /> : <Paperclip className="h-5 w-5" />}
           </button>
@@ -267,8 +308,15 @@ const MessageInput = ({ conversationId }: MessageInputProps) => {
             setMessage(e.target.value);
             handleTyping();
           }}
-          placeholder="Type a message..."
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+              e.preventDefault();
+              handleSendMessage();
+            }
+          }}
+          placeholder="Type a message... (Ctrl+Enter to send)"
           className="input flex-1 min-w-0"
+          aria-label="Message input"
         />
 
         <div className="relative">
@@ -276,6 +324,7 @@ const MessageInput = ({ conversationId }: MessageInputProps) => {
             type="button"
             onClick={() => setShowEmojiPicker(!showEmojiPicker)}
             className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors duration-200"
+            aria-label={showEmojiPicker ? "Close emoji picker" : "Open emoji picker"}
           >
             <Smile className="h-5 w-5" />
           </button>
@@ -305,10 +354,11 @@ const MessageInput = ({ conversationId }: MessageInputProps) => {
 
         <motion.button
           type="submit"
-          disabled={isUploading || (!message && selectedFiles.length === 0)}
+          disabled={isUploading || (!message.trim() && selectedFiles.length === 0)}
           className="btn btn-primary !p-2"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
+          aria-label="Send message"
         >
           <Send className="h-5 w-5" />
         </motion.button>

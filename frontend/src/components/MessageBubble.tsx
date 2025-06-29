@@ -26,9 +26,16 @@ const MessageBubble = ({
   const isConsecutive = previousMessage?.sender._id === message.sender._id;
   
   // Decrypt message content
-  const decryptedContent = message.encryptedContent 
-    ? decryptMessage(message.encryptedContent) 
-    : message.content;
+  const decryptedContent = (() => {
+    try {
+      return message.encryptedContent 
+        ? decryptMessage(message.encryptedContent) 
+        : message.content;
+    } catch (error) {
+      console.error('Failed to decrypt message:', error);
+      return 'Message could not be decrypted';
+    }
+  })();
   
   // Enhanced bubble class
   const getBubbleClass = () => {
